@@ -285,12 +285,23 @@ def health(rows, cfg):
 
 # ---------------------------------------------------------------- google sheet
 
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+
+
 def sheet_handle():
-    sid, sa = os.getenv("GOOGLE_SHEET_ID"), os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
-    if not (sid and sa):
+    """Keyless by default: in GitHub Actions, google-github-actions/auth (Workload Identity
+    Federation) sets GOOGLE_APPLICATION_CREDENTIALS. A JSON key still works if one is given."""
+    sid = os.getenv("GOOGLE_SHEET_ID")
+    sa = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+    if not sid or not (sa or os.getenv("GOOGLE_APPLICATION_CREDENTIALS")):
         return None
     import gspread
-    gc = gspread.service_account_from_dict(json.loads(sa))
+    if sa:
+        gc = gspread.service_account_from_dict(json.loads(sa))
+    else:
+        import google.auth
+        creds, _ = google.auth.default(scopes=SCOPES)
+        gc = gspread.authorize(creds)
     sh = gc.open_by_key(sid)
     try:
         return sh.worksheet("backlog")
