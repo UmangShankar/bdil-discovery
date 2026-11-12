@@ -1,0 +1,56 @@
+# Bad Day In Leonida: discovery settings. Edit freely; the next run picks them up.
+
+game_pattern: '\b(gta\s*-?\s*(6|vi)|grand\s+theft\s+auto\s+(6|vi))\b'
+
+exclude_pattern: '\b(leak(ed|s)?|fake|concept|fan[- ]?made|ai[- ]generated|unreal engine|ue5|fivem|gta\s*rp|roleplay|gta online|compilation|top\s*\d+|tier list|reaction to trailer|trailer \d|trailer breakdown)\b'
+
+brand_keywords: [fail, fails, wasted, busted, ragdoll, physics, glitch, bug, npc, npcs, cop, cops, police, chase,
+  crash, crashed, explosion, explode, gator, alligator, florida man, karma, chaos, funny, lol, wtf, insane,
+  bro, jump, fall, flew, launched, run over, arrested, rage, unlucky, worst, broke]
+
+spoiler_keywords: [ending, final mission, plot twist, dies, death of, secret ending, story spoiler, spoiler]
+
+scoring:
+  weights: {velocity: 35, outlier: 15, engagement: 10, brand: 20, freshness: 10, rights: 10}
+  tier_a: 65
+  tier_b: 45
+  brand_full_hits: 3        # this many keyword hits = full brand score
+
+sources:
+  youtube:
+    enabled: true
+    lookback_hours: 48
+    min_views: 5000
+    min_duration_s: 180
+    velocity_target: 5000   # views/hour for full marks
+    max_results_per_query: 25
+    queries:
+      - GTA 6
+      - GTA 6 funny
+      - GTA 6 fails
+      - GTA 6 police chase
+      - GTA 6 physics
+      - GTA 6 glitch
+      - GTA 6 NPC
+      - GTA 6 stream highlights
+  twitch:
+    enabled: true
+    game_name: Grand Theft Auto VI
+    lookback_hours: 48
+    min_views: 300
+    velocity_target: 500
+  reddit:
+    enabled: true
+    lookback_hours: 48
+    min_upvotes: 200
+    velocity_target: 100
+    subreddits: [GTA6, GTA, gaming, GamePhysics]
+
+rights:
+  allowlist_creators: []    # streamers with open clipping policies (lowercase names)
+  blocklist_creators: []    # rival clippers / creators who said no
+
+backlog:
+  shorts_per_day: 3
+  days_of_cover: 3
+  expire_hours: 72

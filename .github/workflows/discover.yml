@@ -1,0 +1,39 @@
+name: Clip discovery
+
+on:
+  schedule:
+    # Four sweeps a day (UTC). 06:17 lands before the 07:40 London digest.
+    - cron: "17 6,12,18,23 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: discovery
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Run discovery
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: python discover.py
+      - name: Commit backlog
+        run: |
+          git config user.name "leonida-bot"
+          git config user.email "leonida-bot@users.noreply.github.com"
+          git add backlog.csv digest.md
+          git diff --cached --quiet || git commit -m "discovery: $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push
