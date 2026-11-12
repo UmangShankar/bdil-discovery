@@ -29,7 +29,8 @@ FIELDS = ["status", "tier", "score", "source", "title", "creator", "url", "hook"
           "captions", "views", "views_per_h", "age_h", "brand_hits", "flags", "rights",
           "published_at", "first_seen", "id", "notes"]
 USER_FIELDS = ["status", "hook", "start", "end", "captions", "notes"]   # never overwritten by a run
-DONE = {"clipped", "skipped", "expired", "uploaded"}
+DONE = {"clipped", "skipped", "expired", "uploaded", "filtered"}
+WARNINGS = []
 
 
 def log(msg):
@@ -169,6 +170,7 @@ def fetch_reddit(scfg):
             r.raise_for_status()
         except requests.RequestException as e:
             log(f"reddit r/{sub}: failed ({e})")
+            WARNINGS.append(f"reddit r/{sub}: {type(e).__name__} {getattr(e.response, 'status_code', '')}".strip())
             continue
         for ch in r.json().get("data", {}).get("children", []):
             p = ch["data"]
@@ -198,14 +200,14 @@ def score(cands, cfg):
     out = []
     for c in cands:
         text = c["text"]
-        if not game.search(text) and c["source"] != "twitch":
-            continue
+        if not game.search(c["title"]) and c["source"] != "twitch":
+            continue  # tags/descriptions are spammed with #gta6, so the title must say it
         if excl.search(c["title"]) or c["creator"].lower() in block:
             continue
         age = age_hours(c["published"])
         if age > c["lookback"]:
             continue
-        low = text.lower()
+        low = c["title"].lower()
         hits = sorted({k for k in cfg["brand_keywords"] if re.search(rf"\b{re.escape(k)}\b", low)})
         vph = c["views"] / age
         parts = {
@@ -262,6 +264,13 @@ def merge(backlog, scored, cfg):
         for k, v in s.items():
             if k not in USER_FIELDS:
                 row[k] = str(v)
+    game = re.compile(cfg["game_pattern"], re.I)
+    excl = re.compile(cfg["exclude_pattern"], re.I)
+    block = {c.lower() for c in cfg["rights"]["blocklist_creators"]}
+    for row in backlog.values():  # rules changed since a row was added? drop it from the queue
+        if row["status"] == "ready" and (excl.search(row["title"]) or row["creator"].lower() in block
+                                         or (row["source"] != "twitch" and not game.search(row["title"]))):
+            row["status"] = "filtered"
     exp = cfg["backlog"]["expire_hours"]
     for row in backlog.values():
         if row["status"] == "ready" and row.get("first_seen"):
@@ -397,8 +406,8 @@ def main():
     rows = ordered(backlog)
     save_csv(args.backlog, rows)
     text = digest(rows, cfg, added, counts)
-    if errors:
-        text += f"\nSources that errored this run: {', '.join(errors)}\n"
+    if errors or WARNINGS:
+        text += "\nSource problems this run: " + "; ".join(errors + WARNINGS) + "\n"
     if ws:
         try:
             push_sheet(ws, rows, text)

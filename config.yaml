@@ -2,7 +2,8 @@
 
 game_pattern: '\b(gta\s*-?\s*(6|vi)|grand\s+theft\s+auto\s+(6|vi))\b'
 
-exclude_pattern: '\b(leak(ed|s)?|fake|concept|fan[- ]?made|ai[- ]generated|unreal engine|ue5|fivem|gta\s*rp|roleplay|gta online|compilation|top\s*\d+|tier list|reaction to trailer|trailer \d|trailer breakdown)\b'
+# Checked against the TITLE. Drops other games, news/hype, Shorts and anything not a real moment.
+exclude_pattern: '(\bgta\s*-?\s*(v|5)\b|\bgtav\b|#shorts?\b|\bleak(ed|s)?\b|\bfake\b|\bconcept\b|fan[- ]?made|ai[- ]generated|unreal engine|\bue5\b|\bfivem\b|\bgta\s*rp\b|roleplay|gta online|compilation|\btop\s*\d+|tier list|trailer|\bfps\b|\d+\s*fps|refund|unboxing|download|pre-?load|pre-?stream|pre-?order|\bnews\b|rumou?r|countdown|days until|everything (new )?you missed|explained|theor(y|ies)|price|release date|\bps5 pro\b|reaction)'
 
 brand_keywords: [fail, fails, wasted, busted, ragdoll, physics, glitch, bug, npc, npcs, cop, cops, police, chase,
   crash, crashed, explosion, explode, gator, alligator, florida man, karma, chaos, funny, lol, wtf, insane,
