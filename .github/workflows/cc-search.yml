@@ -1,0 +1,21 @@
+name: CC search (one-off)
+on:
+  push:
+    paths: ["tools/cc_search.py"]
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install requests
+      - run: python tools/cc_search.py
+        env: {YOUTUBE_API_KEY: "${{ secrets.YOUTUBE_API_KEY }}"}
+      - run: |
+          git config user.name "leonida-bot"; git config user.email "leonida-bot@users.noreply.github.com"
+          git add tools/cc_results.md; git commit -m "cc search results" || exit 0
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
