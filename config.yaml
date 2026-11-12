@@ -12,18 +12,20 @@ brand_keywords: [fail, fails, wasted, busted, ragdoll, physics, glitch, bug, npc
 spoiler_keywords: [ending, final mission, plot twist, dies, death of, secret ending, story spoiler, spoiler]
 
 scoring:
-  weights: {velocity: 35, outlier: 15, engagement: 10, brand: 20, freshness: 10, rights: 10}
+  # Content first (12 Nov): relevance (brand) + quality (engagement, outlier = views vs channel size),
+  # then creator (rights). Raw velocity is downweighted because it mostly measures fame.
+  weights: {brand: 30, engagement: 20, outlier: 20, velocity: 10, freshness: 10, rights: 10}
   tier_a: 65
   tier_b: 45
-  brand_full_hits: 3        # this many keyword hits = full brand score
+  brand_full_hits: 2        # this many keyword hits = full brand score
 
 sources:
   youtube:
     enabled: true
     lookback_hours: 48
-    min_views: 5000
+    min_views: 1500         # low floor so smaller creators with great moments get in
     min_duration_s: 180
-    velocity_target: 5000   # views/hour for full marks
+    velocity_target: 2000   # views/hour for full marks
     max_results_per_query: 25
     queries:
       - GTA 6
@@ -38,8 +40,8 @@ sources:
     enabled: true
     game_name: Grand Theft Auto VI
     lookback_hours: 48
-    min_views: 300
-    velocity_target: 500
+    min_views: 150
+    velocity_target: 300
   reddit:
     enabled: true
     lookback_hours: 48
@@ -50,8 +52,11 @@ sources:
 rights:
   # Evidence for every name: claude/rights-list.md in the "GTA CLipper Channel" project.
   # Matching is exact and case-insensitive on the YouTube channel title / Twitch broadcaster_name.
+  # Everyone else shows rights=check and may be published under the check rules (1 a day per creator).
   allowlist_creators:       # creators with a clear public OK to clip (approved 12 Nov 2026)
     - hasanabi              # Twitch + YouTube. Condition: link his Twitch + socials in every description
+  hold_creators:            # don't publish until a written yes; kept in the Sheet as rights=hold
+    - ludwig
   blocklist_creators:       # rival clippers / creators with a record of claiming clip channels
     - ishowspeed            # copyright-claim history via Thumb Media (2022-25)
     - gta 6 central         # faceless GTA clip-compilation channel (rival)

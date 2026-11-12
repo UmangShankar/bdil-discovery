@@ -210,6 +210,7 @@ def score(cands, cfg):
     excl = re.compile(cfg["exclude_pattern"], re.I)
     allow = {c.lower() for c in cfg["rights"]["allowlist_creators"]}
     block = {c.lower() for c in cfg["rights"]["blocklist_creators"]}
+    hold = {c.lower() for c in cfg["rights"].get("hold_creators") or []}
     out = []
     for c in cands:
         text = c["text"]
@@ -230,7 +231,7 @@ def score(cands, cfg):
             "engagement": clamp(c["engagement"] / 0.08) if c["engagement"] is not None else 0.5,
             "brand": clamp(len(hits) / sc["brand_full_hits"]),
             "freshness": clamp(1 - age / c["lookback"]),
-            "rights": 1.0 if c["creator"].lower() in allow else 0.3,
+            "rights": 1.0 if c["creator"].lower() in allow else 0.0 if c["creator"].lower() in hold else 0.5,
         }
         total = round(sum(parts[k] * w[k] for k in w))
         if total < sc["tier_b"]:
@@ -241,7 +242,8 @@ def score(cands, cfg):
         out.append(dict(
             id=c["id"], source=c["source"], title=c["title"], creator=c["creator"], url=c["url"],
             views=c["views"], views_per_h=round(vph), age_h=round(age, 1), brand_hits=", ".join(hits),
-            flags=" ".join(flags), rights="allowlisted" if c["creator"].lower() in allow else "check",
+            flags=" ".join(flags), rights=("allowlisted" if c["creator"].lower() in allow
+                    else "hold" if c["creator"].lower() in hold else "check"),
             published_at=iso(c["published"]), score=total,
             tier="A" if total >= sc["tier_a"] else "B"))
     return out
