@@ -48,8 +48,18 @@ sources:
     subreddits: [GTA6, GTA, gaming, GamePhysics]
 
 rights:
-  allowlist_creators: []    # streamers with open clipping policies (lowercase names)
-  blocklist_creators: []    # rival clippers / creators who said no
+  # Evidence for every name: claude/rights-list.md in the "GTA CLipper Channel" project.
+  # Matching is exact and case-insensitive on the YouTube channel title / Twitch broadcaster_name.
+  allowlist_creators:       # creators with a clear public OK to clip (approved 12 Nov 2026)
+    - hasanabi              # Twitch + YouTube. Condition: link his Twitch + socials in every description
+  blocklist_creators:       # rival clippers / creators with a record of claiming clip channels
+    - ishowspeed            # copyright-claim history via Thumb Media (2022-25)
+    - gta 6 central         # faceless GTA clip-compilation channel (rival)
+    - daily dose of hasanabi
+    - hasanabi productions
+    - asmongold clips
+    - asmontv
+    - daily dose of xqc
 
 backlog:
   shorts_per_day: 3
