@@ -161,12 +161,25 @@ def fetch_twitch(scfg):
     return out
 
 
+def reddit_session():
+    """Reddit blocks anonymous requests from datacentre IPs (GitHub Actions gets 403).
+    With REDDIT_CLIENT_ID/SECRET set, use an app-only OAuth token on oauth.reddit.com."""
+    cid, secret = os.getenv("REDDIT_CLIENT_ID"), os.getenv("REDDIT_CLIENT_SECRET")
+    if not (cid and secret):
+        return "https://www.reddit.com", {"User-Agent": UA}
+    tok = requests.post("https://www.reddit.com/api/v1/access_token", timeout=30, auth=(cid, secret),
+                        data={"grant_type": "client_credentials"}, headers={"User-Agent": UA})
+    tok.raise_for_status()
+    return "https://oauth.reddit.com", {"User-Agent": UA, "Authorization": f"Bearer {tok.json()['access_token']}"}
+
+
 def fetch_reddit(scfg):
     out = []
+    base, headers = reddit_session()
     for sub in scfg["subreddits"]:
         try:
-            r = requests.get(f"https://www.reddit.com/r/{sub}/top.json", timeout=30,
-                             headers={"User-Agent": UA}, params={"t": "day", "limit": 50})
+            r = requests.get(f"{base}/r/{sub}/top", timeout=30,
+                             headers=headers, params={"t": "day", "limit": 50, "raw_json": 1})
             r.raise_for_status()
         except requests.RequestException as e:
             log(f"reddit r/{sub}: failed ({e})")
