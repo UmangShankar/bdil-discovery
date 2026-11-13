@@ -1,10 +1,10 @@
-# Bad Day In Leonida: discovery digest, Fri 13 Nov 2026 14:29 UTC
+# Bad Day In Leonida: discovery digest, Fri 13 Nov 2026 23:30 UTC
 
 _Pre-launch: GTA 6 is out on 19 Nov. Expect a thin feed until then._
 
 **Backlog: EMPTY** | 0 ready (0 tier A) = 0.0 days of cover (target 9) | 0 new this run
 
-Sources this run: youtube 22, twitch 0, reddit 0
+Sources this run: youtube 17, twitch 0, reddit 0
 
 | # | Status | Tier | Score | Source | Title | Creator | Views/h | Flags |
 |---|---|---|---|---|---|---|---|---|
