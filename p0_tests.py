@@ -17,13 +17,18 @@ class P0Tests(unittest.TestCase):
         result, held = gate_rows([FIELDS, row()])
         self.assertEqual(held, [])
         self.assertEqual(result[1][1], "to-cut")
-    def test_gate_unapproved(self):
-        for k,v in [("rights","check"),("rights_evidence",""),("rights_evidence","not verified"),
-                    ("rights_approved_by",""),("rights_approved_at",""),("hook","")]:
+    def test_gate_missing_editorial_inputs(self):
+        for k,v in [("url",""),("hook","")]:
             with self.subTest(k=k):
                 result, held = gate_rows([FIELDS, row(**{k:v})])
                 self.assertTrue(held)
                 self.assertEqual(result[1][1], "ready")
+    def test_rights_are_optional_for_private_drafts(self):
+        for k,v in [("rights","check"),("rights_evidence",""),("rights_approved_by",""),("rights_approved_at","")]:
+            with self.subTest(k=k):
+                output, held = gate_rows([FIELDS, row(**{k:v})])
+                self.assertFalse(held)
+                self.assertEqual(output[1][1], "to-cut")
     def test_missing_columns_rejected(self):
         with self.assertRaises(ValueError):
             gate_rows([["id","status"],["yt:test","to-cut"]])
