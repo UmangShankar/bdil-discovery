@@ -49,16 +49,18 @@ def parse_vtt(content):
     # Estimate each sentence boundary from its word share within that cue.
     split_cues = []
     for cue in cues:
-        pieces = re.findall(r".*?[.!?](?=\\s|$)|.+$", cue["text"])
+        pieces = re.findall(r".*?[.!?](?=\s|$)|.+$", cue["text"])
         pieces = [p.strip() for p in pieces if p.strip()]
         if len(pieces) <= 1:
             split_cues.append(cue)
             continue
         total = sum(len(p.split()) for p in pieces)
         cursor = cue["start"]
+        span = cue["end"] - cue["start"]
         for pos, part in enumerate(pieces):
             portion = len(part.split()) / max(total, 1)
-            finish = cue["end"] if pos == len(pieces) - 1 else cursor + (cue["end"] - cue["start"]) * portion
+            finish = (cue["end"] if pos == len(pieces) - 1
+                      else cursor + span * portion)
             split_cues.append({"start": round(cursor, 2), "end": round(finish, 2), "text": part})
             cursor = finish
     return split_cues
