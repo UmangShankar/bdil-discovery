@@ -111,3 +111,31 @@ No automatic public publishing. This batch still needs a real integration
 test using one selected Sheet row to validate Mac OAuth, clip rendering and
 the private YouTube URL/status returning to the Sheet. Manual uploads
 outside backlog do not get reconciled automatically.
+
+## V3: install AI-generated hooks without any ZIP download
+
+```bash
+cd ~/BadDayInLeonida/discovery
+git pull origin main
+python install_v3.py --target ../clipper
+python -m py_compile ../clipper/clip.py ../clipper/smart_hooks.py
+python -m unittest discover_tests.py p0_tests.py v3_tests.py
+```
+
+Automatic moment selection requires an OpenAI API key supplied as
+`OPENAI_API_KEY`. This key must not be committed to Git. For a private
+editorial test with an existing transcript:
+
+```bash
+cd ~/BadDayInLeonida/clipper
+python smart_hooks.py --vtt hazard_npcs.en-orig.vtt --duration 674 --title 'GTA 6 NPCs'
+```
+
+A `to-cut` Sheet row may now have an empty `hook`, `start`, and
+`end`. V3 attempts to find a complete English-language 12-30-second
+moment via YouTube captions and AI. If the source has no usable English
+captions, no API key, or no validated payoff, it will not invent a clip.
+Manual `--start`/`--end` remains available. The AI has not analysed
+video frames, and captions alone cannot verify scene quality.
+Rights annotations are optional for *private drafts*; public release
+still requires your separate rights and quality review.
