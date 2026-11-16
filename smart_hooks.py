@@ -16,21 +16,34 @@ def sec(v):
     return 3600*int(h) + 60*int(m) + float(s)
 
 def parse_vtt(content):
-    cues = []
-    for part in re.split(r"\n\s*\n", content.replace("\r\n", "\n")):
-        match = TIME.search(part)
-        if not match:
+    """Convert YouTube's rolling captions into non-overlapping speech cues.
+
+    Auto-VTT repeats the previous line and inserts 10-ms hold frames.
+    The timestamp line can also contain alignment settings; these aren't
+    narration. Extract genuinely new words and preserve their cue timing.
+    """
+    cues, previous_words = [], []
+    for part in re.split(r"\\n\\s*\\n", content.replace("\\r\\n", "\\n")):
+        lines = part.strip().splitlines()
+        index = next((i for i, line in enumerate(lines) if TIME.search(line)), None)
+        if index is None:
             continue
-        a,b = sec(match[1]),sec(match[2])
-        raw = part[match.end():]
-        speech = html.unescape(TAG.sub("", raw))
-        speech = re.sub(r"\s+", " ", speech).strip()
-        if not speech or b <= a:
+        match = TIME.search(lines[index])
+        a, b = sec(match[1]), sec(match[2])
+        if b - a < 0.12:
             continue
-        if cues and cues[-1]["text"] == speech and a <= cues[-1]["end"] + 1:
-            cues[-1]["end"] = max(b,cues[-1]["end"])
-        else:
-            cues.append({"start":round(a,2),"end":round(b,2),"text":speech})
+        speech = html.unescape(TAG.sub("", " ".join(lines[index + 1:])))
+        words = re.sub(r"\\s+", " ", speech).strip().split()
+        if not words:
+            continue
+        overlap = 0
+        for n in range(1, min(len(words), len(previous_words)) + 1):
+            if [w.lower() for w in previous_words[-n:]] == [w.lower() for w in words[:n]]:
+                overlap = n
+        fresh = words[overlap:]
+        if fresh:
+            cues.append({"start": round(a, 2), "end": round(b, 2), "text": " ".join(fresh)})
+        previous_words = words
     return cues
 
 def fetch_vtt(url, work):
@@ -53,24 +66,46 @@ def fetch_vtt(url, work):
     return files[0] if files else None
 
 def validate(candidate,cues,duration):
-    if not isinstance(candidate,dict) or candidate.get("skip"):
+    """Reject invalid edits; align payoff against timestamps if model cue ID drifts."""
+    if not isinstance(candidate, dict) or candidate.get("skip"):
         return None
     try:
-        a,b=float(candidate["start"]),float(candidate["end"])
-        i=int(candidate["payoff_cue"])
-        hook=str(candidate["hook"]).strip()
-    except (KeyError,TypeError,ValueError):
+        a, b = float(candidate["start"]), float(candidate["end"])
+        hook = str(candidate["hook"]).strip()
+    except (KeyError, TypeError, ValueError):
+        print("  Validation: missing start, end or hook")
         return None
     if not (0 <= a < b <= duration and 12 <= b-a <= 30):
+        print(f"  Validation: invalid clip duration/bounds ({a:.2f}-{b:.2f})")
         return None
-    if not (0 <= i < len(cues) and a <= cues[i]["start"] <= b):
+    if not (12 <= len(hook) <= 85) or "\\n" in hook:
+        print("  Validation: invalid hook length or formatting")
         return None
-    if cues[i]["end"] > b+.75 or b-cues[i]["end"] > 3:
+    if not cues:
         return None
-    if not (12 <= len(hook) <= 85) or "\n" in hook:
+    inside = [(i, cue) for i, cue in enumerate(cues)
+              if a <= cue["start"] and cue["end"] <= b + .75]
+    if not inside:
+        print("  Validation: no timed captions inside proposed window")
         return None
-    return {"start":round(a,2),"end":round(b,2),"hook":hook,
-            "payoff_cue":i,"payoff":cues[i]["text"],"reason":str(candidate.get("reason",""))[:220]}
+    # Model index is a hint, not an authority: verify the actual timed payoff.
+    try:
+        i = int(candidate["payoff_cue"])
+    except (KeyError, TypeError, ValueError):
+        i = -1
+    if not (0 <= i < len(cues) and a <= cues[i]["start"] < b
+            and cues[i]["end"] <= b + .75 and b - cues[i]["end"] <= 3):
+        i = inside[-1][0]
+    payoff = cues[i]
+    if b - payoff["end"] > 3 or payoff["end"] > b + .75:
+        print("  Validation: payoff not close to clip ending")
+        return None
+    if not re.search(r"[.!?][\\\"']?$", payoff["text"]):
+        print("  Validation: clip doesn't end at a sentence boundary")
+        return None
+    return {"start": round(a, 2), "end": round(b, 2), "hook": hook,
+            "payoff_cue": i, "payoff": payoff["text"],
+            "reason": str(candidate.get("reason", ""))[:220]}
 
 def propose(cues,duration,title):
     sample=" ".join(x["text"] for x in cues[:150])
