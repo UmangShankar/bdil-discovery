@@ -84,6 +84,30 @@ def fetch_vtt(url, work):
     files=sorted(folder.glob(name+".en*.vtt"))
     return files[0] if files else None
 
+def recover_short_start(start, payoff_end, cues):
+    """Recover a short AI suggestion by adding a complete preceding sentence.
+
+    Only use a detectable full-stop/question/exclamation sentence boundary;
+    never arbitrarily extend backwards into the middle of narration.
+    The 14–24s preference provides setup without dragging in another topic.
+    """
+    if payoff_end - start >= 12:
+        return start
+    options = []
+    for i, cue in enumerate(cues):
+        if i == 0:
+            continue
+        previous = cues[i - 1]
+        if not re.search(r"[.!?][\\\"']?$", previous["text"]):
+            continue
+        span = payoff_end - cue["start"]
+        if 12 <= span <= 24 and cue["start"] < start:
+            options.append((abs(span - 17), cue["start"]))
+    if not options:
+        return start
+    return min(options)[1]
+
+
 def validate(candidate, cues, duration):
     """Snap the payoff to a completed sentence, never an arbitrary subtitle edge."""
     if not isinstance(candidate, dict) or candidate.get("skip"):
@@ -94,7 +118,7 @@ def validate(candidate, cues, duration):
     except (KeyError, TypeError, ValueError):
         print("  Validation: missing start, end or hook")
         return None
-    if not (0 <= a < b <= duration and 10 <= b-a <= 33):
+    if not (0 <= a < b <= duration and 5 <= b-a <= 33):
         print(f"  Validation: invalid proposed bounds ({a:.2f}-{b:.2f})")
         return None
     if not (12 <= len(hook) <= 85) or "\n" in hook:
@@ -124,6 +148,7 @@ def validate(candidate, cues, duration):
         selected = min(eligible, key=lambda pair: abs(pair[1]["end"]-b))
     i, payoff = selected
     end = min(duration, round(payoff["end"] + 0.35, 2))
+    a = recover_short_start(a, end, cues)
     if not (12 <= end - a <= 30):
         print(f"  Validation: snapped clip is outside 12-30 seconds ({end-a:.1f}s)")
         return None
