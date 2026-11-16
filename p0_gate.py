@@ -1,7 +1,7 @@
 """Fail-closed editorial gate and status reconciliation, testable without credentials."""
 from urllib.parse import urlparse
 
-REQUIRED = ("status", "url", "rights", "hook", "rights_evidence", "rights_approved_by", "rights_approved_at")
+REQUIRED = ("status", "url", "hook")
 ORDER = {"": 0, "ready": 1, "to-cut": 2, "in-progress": 3, "clipped": 4, "uploaded": 5}
 FINAL = {"skipped", "expired", "filtered"}
 
@@ -13,20 +13,13 @@ def evidence_valid(value):
     return p.scheme in ("http", "https") and bool(p.netloc)
 
 def approval_error(row):
-    if row.get("rights", "").strip().lower() != "allowlisted":
-        return "creator not allowlisted"
+    """Private-draft gate only. Rights fields are optional and never block drafts."""
     if not row.get("url", "").strip():
         return "source URL missing"
     if not row.get("hook", "").strip():
         return "editorial hook missing"
     if "SPOILER" in (row.get("flags") or "").upper():
         return "spoiler"
-    if not evidence_valid(row.get("rights_evidence", "")):
-        return "rights evidence missing (http(s) URL or owned: reference)"
-    if not row.get("rights_approved_by", "").strip():
-        return "approver missing"
-    if not row.get("rights_approved_at", "").strip():
-        return "approval date missing"
     return None
 
 def gate_rows(rows):
