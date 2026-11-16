@@ -205,7 +205,7 @@ def fetch_reddit(scfg):
 
 def eligible_moment(title, cfg):
     """Conservative metadata filter, not proof of good or authentic footage."""
-    clean = re.sub(r"#[\\w]+", " ", title.lower())
+    clean = re.sub(r"#[\w]+", " ", title.lower())
     if cfg.get("english_titles_only", True):
         letters = [ch for ch in clean if ch.isalpha()]
         if letters and sum(ch.isascii() for ch in letters) / len(letters) < 0.90:
@@ -235,7 +235,7 @@ def score(cands, cfg):
         age = age_hours(c["published"])
         if age > c["lookback"]:
             continue
-        low = re.sub(r"#[\\w]+", " ", c["title"].lower())
+        low = re.sub(r"#[\w]+", " ", c["title"].lower())
         hits = sorted({k for k in cfg["brand_keywords"] if re.search(rf"\b{re.escape(k)}\b", low)})
         vph = c["views"] / age
         parts = {
