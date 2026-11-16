@@ -35,3 +35,35 @@ The Mac pull script prevents `to-cut` rows with rights other than
 `allowlisted` from reaching the local cutter. A `check` row needs verified
 permission; giving credit alone does not establish usage rights.
 Previous uploads are unchanged. Approve and inspect footage before publishing.
+
+## Upgrade the local cutter to v2
+
+From `~/BadDayInLeonida/discovery` after `git pull origin main`:
+
+```bash
+python upgrade_clipper.py --target ../clipper
+python -m py_compile ../clipper/clip.py
+```
+
+The upgrade modifies only `../clipper/clip.py` and `../clipper/config.yaml`;
+the original versions are backed up locally as `.pre-v2.bak`. It never
+reads or copies YouTube `token.json`, OAuth `client_secret.json`, or videos.
+Do not commit your local clipper directory or secrets to GitHub.
+
+Changes: auto-pick up to one strong event window (22 seconds, 2.5 seconds
+lead-in), skip sources without an unusually distinct peak, and require both
+`rights=allowlisted` and a human-supplied `hook` for backlog processing.
+Direct one-off renders still work, but direct upload is blocked. Backlog
+`--upload` continues to upload **private**, not public. The detection
+remains heuristic, not video understanding or guaranteed high retention.
+
+First smoke test with a local sample without uploading:
+
+```bash
+cd ~/BadDayInLeonida/clipper
+source .venv/bin/activate  # if your clipper environment has one
+python clip.py --file /absolute/path/to/sample.mp4 --start 10 --end 25 --hook "Example hook"
+```
+
+Do not run the upgrade twice: it is deliberately fail-closed if the original
+code has already been replaced.
