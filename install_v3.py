@@ -70,9 +70,9 @@ def install(folder):
             r["clip_file"] = "; ".join(x["file"] for x in res)'''
     if newmeta not in after:
         after=replace_once(after,oldmeta,newmeta,"backlog generated hook/point sync")
-    if not re.search(r"(?m)^max_clip_sec:\\s*22\\s*$",cfg):
+    if cfg.count("max_clip_sec: 22") != 1:
         raise RuntimeError("Expected max_clip_sec: 22, refusing to change unknown config")
-    cfg=re.sub(r"(?m)^(max_clip_sec:\\s*)22(?=\\s*$)",r"\\g<1>30",cfg,count=1)
+    cfg = cfg.replace("max_clip_sec: 22", "max_clip_sec: 30", 1)
     ast.parse(after)
     src=Path(__file__).with_name("smart_hooks.py")
     if not src.is_file():
