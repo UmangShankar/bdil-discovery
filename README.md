@@ -24,3 +24,14 @@ python ~/BadDayInLeonida/discovery/pull_backlog.py --push --client-secret client
 Pull before cutting; push afterwards so clipped/uploaded rows are marked in the Sheet and never cut twice.
 Local test file: `python clip.py --file X.mp4 --start 0 --end 8 --hook "..." --upload` (a bare path is read as a URL).
 Test: Actions > Clip discovery > Run workflow.
+
+## V2 quality / rights policy
+
+Discovery now pre-filters for GTA VI moment-oriented English-language titles
+and rejects explainers, trailers, mods and unrelated content. This is **only
+metadata screening**, not AI viewing or proof the footage is a good Short.
+
+The Mac pull script prevents `to-cut` rows with rights other than
+`allowlisted` from reaching the local cutter. A `check` row needs verified
+permission; giving credit alone does not establish usage rights.
+Previous uploads are unchanged. Approve and inspect footage before publishing.
