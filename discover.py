@@ -203,6 +203,19 @@ def fetch_reddit(scfg):
 
 # ---------------------------------------------------------------- scoring
 
+def eligible_moment(title, cfg):
+    """Conservative metadata filter, not proof of good or authentic footage."""
+    clean = re.sub(r"#[\\w]+", " ", title.lower())
+    if cfg.get("english_titles_only", True):
+        letters = [ch for ch in clean if ch.isalpha()]
+        if letters and sum(ch.isascii() for ch in letters) / len(letters) < 0.90:
+            return False
+    if any(re.search(p, clean, re.I) for p in cfg.get("reject_title_patterns", [])):
+        return False
+    pattern = cfg.get("moment_title_pattern", "")
+    return not pattern or bool(re.search(pattern, clean, re.I))
+
+
 def score(cands, cfg):
     sc = cfg["scoring"]
     w = sc["weights"]
@@ -213,15 +226,16 @@ def score(cands, cfg):
     hold = {c.lower() for c in cfg["rights"].get("hold_creators") or []}
     out = []
     for c in cands:
-        text = c["text"]
         if not game.search(c["title"]) and c["source"] != "twitch":
-            continue  # tags/descriptions are spammed with #gta6, so the title must say it
+            continue
         if excl.search(c["title"]) or c["creator"].lower() in block:
+            continue
+        if not eligible_moment(c["title"], cfg):
             continue
         age = age_hours(c["published"])
         if age > c["lookback"]:
             continue
-        low = c["title"].lower()
+        low = re.sub(r"#[\\w]+", " ", c["title"].lower())
         hits = sorted({k for k in cfg["brand_keywords"] if re.search(rf"\b{re.escape(k)}\b", low)})
         vph = c["views"] / age
         parts = {
@@ -284,7 +298,8 @@ def merge(backlog, scored, cfg):
     block = {c.lower() for c in cfg["rights"]["blocklist_creators"]}
     for row in backlog.values():  # rules changed since a row was added? drop it from the queue
         if row["status"] == "ready" and (excl.search(row["title"]) or row["creator"].lower() in block
-                                         or (row["source"] != "twitch" and not game.search(row["title"]))):
+                                         or (row["source"] != "twitch" and not game.search(row["title"]))
+                                         or not eligible_moment(row["title"], cfg)):
             row["status"] = "filtered"
     exp = cfg["backlog"]["expire_hours"]
     for row in backlog.values():
@@ -363,8 +378,6 @@ def digest(rows, cfg, added, counts):
     a = sum(1 for r in ready if r["tier"] == "A")
     days = len(ready) / cfg["backlog"]["shorts_per_day"]
     lines = [f"# Bad Day In Leonida: discovery digest, {NOW.strftime('%a %d %b %Y %H:%M')} UTC", ""]
-    if NOW < datetime(2026, 11, 19, tzinfo=timezone.utc):
-        lines += ["_Pre-launch: GTA 6 is out on 19 Nov. Expect a thin feed until then._", ""]
     lines += [
         f"**Backlog: {state}** | {len(ready)} ready ({a} tier A) = {days:.1f} days of cover "
         f"(target {need}) | {added} new this run",
@@ -378,8 +391,8 @@ def digest(rows, cfg, added, counts):
                      f"[{title}]({r['url']}) | {r['creator'].replace('|', '/')} | {r['views_per_h']} | {r['flags']} |")
     if not ready:
         lines.append("| - | - | - | - | - | nothing ready | - | - | - |")
-    lines += ["", "Rights column says `check` until the creator is on the allowlist. "
-              "Confirm permission before you publish."]
+    lines += ["", "Only rights=allowlisted candidates should be sent to the local cutter. "
+              "Rights=check or hold require creator permission before publishing."]
     return "\n".join(lines) + "\n"
 
 
