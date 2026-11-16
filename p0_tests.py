@@ -18,7 +18,7 @@ class P0Tests(unittest.TestCase):
         self.assertEqual(held, [])
         self.assertEqual(result[1][1], "to-cut")
     def test_gate_missing_editorial_inputs(self):
-        for k,v in [("url",""),("hook","")]:
+        for k,v in [("url","")]:
             with self.subTest(k=k):
                 result, held = gate_rows([FIELDS, row(**{k:v})])
                 self.assertTrue(held)
@@ -29,6 +29,17 @@ class P0Tests(unittest.TestCase):
                 output, held = gate_rows([FIELDS, row(**{k:v})])
                 self.assertFalse(held)
                 self.assertEqual(output[1][1], "to-cut")
+    def test_ai_hook_can_be_filled_after_processing(self):
+        item = row(hook="")
+        output, held = gate_rows([FIELDS, item])
+        self.assertFalse(held)
+        self.assertEqual(output[1][1], "to-cut")
+        updated = sync_changes([FIELDS, item], {"yt:test":{
+            "status":"uploaded", "youtube":"https://youtube.com/shorts/auto",
+            "clip_file":"ready/auto.mp4", "hook":"NPCs fight back!",
+            "start":"274", "end":"294"}})
+        self.assertIn((2, "hook", "NPCs fight back!"), updated)
+
     def test_missing_columns_rejected(self):
         with self.assertRaises(ValueError):
             gate_rows([["id","status"],["yt:test","to-cut"]])
