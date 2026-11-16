@@ -21,8 +21,8 @@ def check(clipper: Path):
     source = script.read_text(encoding="utf-8")
     if '"privacyStatus": "private"' not in source:
         raise SystemExit("FAIL: uploader is not clearly configured for private uploads")
-    if "r.get(\"rights\"" not in source or "allowlisted" not in source:
-        raise SystemExit("FAIL: clipper is missing the v2 rights gate")
+    if "P0: rights are advisory for PRIVATE drafts" not in source:
+        raise SystemExit("FAIL: private-draft patch has not been applied")
     spec = importlib.util.spec_from_file_location("bdil_mac_clipper", script)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
