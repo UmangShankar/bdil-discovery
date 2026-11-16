@@ -62,6 +62,26 @@ class TestV4(unittest.TestCase):
         self.assertEqual(v4_local.rank(outro, 160), [])
         self.assertEqual(v4_local.rank(generic, 160), [])
 
+    def test_reject_reported_history_and_physics_explainer(self):
+        source = [
+            {"start":i*2.0,"end":i*2.0+1.9,
+             "text":"2 years later GTA 4 brought in Euphoria physics. People you hit have been falling properly since 2008."}
+            for i in range(80)
+        ]
+        self.assertEqual(v4_local.rank(source, 160), [])
+
+    def test_reject_pandemic_hit_false_event(self):
+        source = [
+            {"start":i*2.0,"end":i*2.0+1.9,
+             "text":"Then 2020 happened. Full production was getting going and the pandemic hit. The map reportedly grew."}
+            for i in range(80)
+        ]
+        self.assertEqual(v4_local.rank(source, 160), [])
+
+    def test_positive_direct_event(self):
+        self.assertTrue(v4_local.DIRECT_EVENT.search("That car crashed and exploded!"))
+        self.assertFalse(v4_local.DIRECT_EVENT.search("The pandemic hit the schedule."))
+
     def test_empty(self):
         self.assertEqual(v4_local.rank([],100),[])
 
