@@ -44,7 +44,24 @@ def parse_vtt(content):
         if fresh:
             cues.append({"start": round(a, 2), "end": round(b, 2), "text": " ".join(fresh)})
         previous_words = words
-    return cues
+    # Split sentences which end MID-CUE. YouTube rolling auto-captions often
+    # combine 'call 911 on you. This is...' into one timestamped block.
+    # Estimate each sentence boundary from its word share within that cue.
+    split_cues = []
+    for cue in cues:
+        pieces = re.findall(r".*?[.!?](?=\\s|$)|.+$", cue["text"])
+        pieces = [p.strip() for p in pieces if p.strip()]
+        if len(pieces) <= 1:
+            split_cues.append(cue)
+            continue
+        total = sum(len(p.split()) for p in pieces)
+        cursor = cue["start"]
+        for pos, part in enumerate(pieces):
+            portion = len(part.split()) / max(total, 1)
+            finish = cue["end"] if pos == len(pieces) - 1 else cursor + (cue["end"] - cue["start"]) * portion
+            split_cues.append({"start": round(cursor, 2), "end": round(finish, 2), "text": part})
+            cursor = finish
+    return split_cues
 
 def fetch_vtt(url, work):
     import yt_dlp
@@ -65,8 +82,8 @@ def fetch_vtt(url, work):
     files=sorted(folder.glob(name+".en*.vtt"))
     return files[0] if files else None
 
-def validate(candidate,cues,duration):
-    """Reject invalid edits; align payoff against timestamps if model cue ID drifts."""
+def validate(candidate, cues, duration):
+    """Snap the payoff to a completed sentence, never an arbitrary subtitle edge."""
     if not isinstance(candidate, dict) or candidate.get("skip"):
         return None
     try:
@@ -75,35 +92,42 @@ def validate(candidate,cues,duration):
     except (KeyError, TypeError, ValueError):
         print("  Validation: missing start, end or hook")
         return None
-    if not (0 <= a < b <= duration and 12 <= b-a <= 30):
-        print(f"  Validation: invalid clip duration/bounds ({a:.2f}-{b:.2f})")
+    if not (0 <= a < b <= duration and 10 <= b-a <= 33):
+        print(f"  Validation: invalid proposed bounds ({a:.2f}-{b:.2f})")
         return None
     if not (12 <= len(hook) <= 85) or "\n" in hook:
         print("  Validation: invalid hook length or formatting")
         return None
-    if not cues:
+
+    # Find a sentence that ends close to the requested cut; prefer the
+    # completion closest to the model's end time (within ~3 seconds).
+    sentences = [(i, c) for i, c in enumerate(cues)
+                 if a + 8 <= c["end"] <= min(duration, b + 3.5)
+                 and re.search(r"[.!?][\\\"']?$", c["text"])]
+    if not sentences:
+        print("  Validation: no complete sentence near the proposed payoff")
         return None
-    inside = [(i, cue) for i, cue in enumerate(cues)
-              if a <= cue["start"] and cue["end"] <= b + .75]
-    if not inside:
-        print("  Validation: no timed captions inside proposed window")
-        return None
-    # Model index is a hint, not an authority: verify the actual timed payoff.
+
+    # Prefer model's indicated payoff if it is a sentence boundary.
     try:
-        i = int(candidate["payoff_cue"])
-    except (KeyError, TypeError, ValueError):
-        i = -1
-    if not (0 <= i < len(cues) and a <= cues[i]["start"] < b
-            and cues[i]["end"] <= b + .75 and b - cues[i]["end"] <= 3):
-        i = inside[-1][0]
-    payoff = cues[i]
-    if b - payoff["end"] > 3 or payoff["end"] > b + .75:
-        print("  Validation: payoff not close to clip ending")
+        hint = int(candidate.get("payoff_cue", -1))
+    except (ValueError, TypeError):
+        hint = -1
+    eligible = [(i,c) for i,c in sentences if abs(c["end"]-b) <= 3.5]
+    if not eligible:
+        print("  Validation: the closest complete sentence is too far away")
         return None
-    if not re.search(r"[.!?][\"']?$", payoff["text"]):
-        print("  Validation: clip doesn't end at a sentence boundary")
+    selected = next(((i,c) for i,c in eligible if i == hint), None)
+    if selected is None:
+        selected = min(eligible, key=lambda pair: abs(pair[1]["end"]-b))
+    i, payoff = selected
+    end = min(duration, round(payoff["end"] + 0.35, 2))
+    if not (12 <= end - a <= 30):
+        print(f"  Validation: snapped clip is outside 12-30 seconds ({end-a:.1f}s)")
         return None
-    return {"start": round(a, 2), "end": round(b, 2), "hook": hook,
+    if end <= a:
+        return None
+    return {"start": round(a, 2), "end": end, "hook": hook,
             "payoff_cue": i, "payoff": payoff["text"],
             "reason": str(candidate.get("reason", ""))[:220]}
 
