@@ -6,7 +6,6 @@ The original files are preserved as .pre-v2.bak files.
 """
 import argparse
 import ast
-import re
 import shutil
 from pathlib import Path
 
@@ -75,18 +74,19 @@ def upgrade(folder):
             print(f"  HOLD (needs a specific hook): {r.get('title')}")
             continue
         try:''')
-    # The local cutter may have slightly different bookkeeping lines; only
-    # replace the status assignment and leave the rest of the method intact.
-    # No clips = skip, not a false successful "clipped" status.
-    source, status_count = re.subn(
-        r'(?m)^(\\s*)r\\["status"\\]\\s*=\\s*["\\']clipped["\\']\\s*$',
-        lambda m: m.group(1) + 'if not res:\\n'
-        + m.group(1) + '    r["status"] = "skipped"\\n'
-        + m.group(1) + 'else:\\n'
-        + m.group(1) + '    r["status"] = "uploaded" if do_upload else "clipped"',
-        source, count=1)
-    if status_count != 1:
-        print("NOTE: status block differs; retained existing status logic")
+    # This bookkeeping line differs across local revisions; don't fail the
+    # whole upgrade if it has already changed.
+    status_stmt = '            r["status"] = "clipped"'
+    if status_stmt in source:
+        replacement = (
+            '            if not res:\n'
+            '                r["status"] = "skipped"\n'
+            '            else:\n'
+            '                r["status"] = "uploaded" if do_upload else "clipped"'
+        )
+        source = source.replace(status_stmt, replacement, 1)
+    else:
+        print("NOTE: local status block differs; leaving it untouched")
     source = replace_once(source,
         '    elif a.url or a.file:\n        make_clip(',
         '    elif a.url or a.file:\n        if a.upload:\n            sys.exit("Direct upload disabled: use a rights-approved backlog row.")\n        make_clip(')
