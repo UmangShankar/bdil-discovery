@@ -27,8 +27,10 @@ VIDEO_DOMAINS = ("v.redd.it", "youtube.com", "youtu.be", "twitch.tv", "streamabl
 # Columns the cutter (clip.py) reads: status, url, hook, start, end, captions.
 FIELDS = ["status", "tier", "score", "source", "title", "creator", "url", "hook", "start", "end",
           "captions", "views", "views_per_h", "age_h", "brand_hits", "flags", "rights",
-          "published_at", "first_seen", "id", "notes"]
-USER_FIELDS = ["status", "hook", "start", "end", "captions", "notes"]   # never overwritten by a run
+          "published_at", "first_seen", "id", "notes", "rights_evidence", "rights_approved_by",
+          "rights_approved_at", "youtube", "clip_file"]
+USER_FIELDS = ["status", "hook", "start", "end", "captions", "notes",
+               "rights_evidence", "rights_approved_by", "rights_approved_at", "youtube", "clip_file"]   # never overwritten by a run
 DONE = {"clipped", "skipped", "expired", "uploaded", "filtered"}
 WARNINGS = []
 
