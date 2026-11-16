@@ -43,11 +43,31 @@ amazing<00:00:04.200><c> today.</c>
                 {"start": 15, "end": 19, "text": "Payoff."}]
         self.assertIsNotNone(validate({"start": 1, "end": 19.4,
              "hook": "What if NPCs could call police?", "payoff_cue": 1},cues,25))
-    def test_premature_cut_rejected(self):
+    def test_mid_sentence_end_is_snapped_forward(self):
         cues = [{"start": 1, "end": 3, "text": "Setup"},
-                {"start": 15, "end": 21, "text": "Payoff"}]
-        self.assertIsNone(validate({"start": 1, "end": 19,
-             "hook": "What if NPCs could call police?", "payoff_cue": 1},cues,25))
+                {"start": 15, "end": 21, "text": "Payoff."}]
+        chosen = validate({"start": 1, "end": 19,
+            "hook": "What if NPCs could call police?", "payoff_cue": 1}, cues, 25)
+        self.assertIsNotNone(chosen)
+        self.assertAlmostEqual(chosen["end"], 21.35)
+
+    def test_mid_cue_sentence_is_split(self):
+        s = """WEBVTT
+
+00:04:52.160 --> 00:04:54.750
+911 on you. This is a huge improvement
+"""
+        cues = parse_vtt(s)
+        self.assertEqual(len(cues), 2)
+        self.assertEqual(cues[0]["text"], "911 on you.")
+        self.assertEqual(cues[1]["text"], "This is a huge improvement")
+        self.assertLess(cues[0]["end"], cues[1]["end"])
+
+    def test_far_from_sentence_end_rejected(self):
+        cues = [{"start": 1, "end": 3, "text": "Setup."},
+                {"start": 24, "end": 29, "text": "Payoff."}]
+        self.assertIsNone(validate({"start": 1, "end": 20,
+            "hook": "What if NPCs could call police?", "payoff_cue": 1}, cues, 32))
 
 if __name__ == "__main__":
     unittest.main()
