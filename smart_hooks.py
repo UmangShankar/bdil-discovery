@@ -199,7 +199,7 @@ def rewrite_invalid_hook(candidate, cues, title, api_key):
         response.raise_for_status()
         revised = json.loads(response.json()["choices"][0]["message"]["content"]).get("hook")
         if isinstance(revised, str):
-            revised = re.sub(r"\\s+", " ", revised).strip().strip('"“”')
+            revised = re.sub(r"\s+", " ", revised).strip().strip('"“”')
             if 12 <= len(revised) <= 85 and "\n" not in revised:
                 return {**candidate, "hook": revised}
     except (requests.RequestException, KeyError, IndexError, TypeError, ValueError) as exc:
