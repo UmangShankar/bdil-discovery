@@ -39,6 +39,16 @@ SPECULATION = re.compile(
     r"we won't|trailer|rockstar will|rockstar is going to|"
     r"release date|prediction|rumou?r|theory)\b", re.I)
 
+HISTORICAL_CONTEXT = re.compile(
+    r"\b(since 2008|since 20\d\d|years? later|back in 20\d\d|"
+    r"pandemic|full production|rockstar's own engine|the first game|"
+    r"reportedly|red dead redemption cleaned up)\b", re.I)
+DIRECT_EVENT = re.compile(
+    r"\b(crash(?:ed|es|ing)?|explod(?:ed|es|ing)|explosion|"
+    r"glitch(?:ed|es|ing)?|ragdoll(?:ed)?|arrest(?:ed|s|ing)?|"
+    r"collid(?:ed|es|ing)|wreck(?:ed|s)?|fell|flew|launched|"
+    r"killed|escaped|chased|shot|shoot(?:s|ing)?|caught|stole)\b", re.I)
+
 STOP = {"the", "and", "for", "you", "that", "this", "with", "was", "are", "but", "not", "have", "from", "they", "what"}
 def clamp(x):
     return max(0.0, min(1.0, float(x)))
@@ -102,7 +112,8 @@ def motion_activity(video, interval=1.0):
         return [], []
     capture=cv2.VideoCapture(str(video))
     if not capture.isOpened():
-        return [], []
+        capture.release()
+        return ffmpeg_motion_activity(video, interval)
     times, values=[], []
     last=None
     t=0.0
@@ -121,6 +132,49 @@ def motion_activity(video, interval=1.0):
             t+=interval
     finally:
         capture.release()
+    if not values:
+        return ffmpeg_motion_activity(video, interval)
+    return times, values
+
+def ffmpeg_motion_activity(video, interval=1.0):
+    """Sample frames using FFmpeg when OpenCV cannot decode the codec."""
+    if not shutil.which("ffmpeg"):
+        return [], []
+    try:
+        import numpy as np
+    except ImportError:
+        return [], []
+    width, height = 160, 90
+    size = width * height
+    cmd = ["ffmpeg", "-nostdin", "-v", "error", "-i", str(video),
+           "-vf", f"fps={1/interval},scale={width}:{height},format=gray",
+           "-an", "-f", "rawvideo", "-pix_fmt", "gray", "-"]
+    try:
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    except OSError:
+        return [], []
+    times, values = [], []
+    previous = None
+    index = 0
+    try:
+        while True:
+            raw = proc.stdout.read(size)
+            if len(raw) != size:
+                break
+            frame = np.frombuffer(raw, dtype=np.uint8).astype(np.int16)
+            if previous is not None:
+                values.append(float(np.abs(frame-previous).mean()))
+                times.append(index * interval)
+            previous = frame
+            index += 1
+    finally:
+        if proc.stdout:
+            proc.stdout.close()
+        try:
+            proc.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
     return times, values
 
 def text_signals(window):
@@ -165,8 +219,8 @@ def rank(cues, duration, video=None, limit=5):
         # is also an observed event in the transcript. This cannot verify the
         # video content; human review is still mandatory.
         excerpt=w["excerpt"]
-        if (ad or SPECULATION.search(excerpt)
-                or not OBSERVED_EVENT.search(excerpt)):
+        if (ad or SPECULATION.search(excerpt) or HISTORICAL_CONTEXT.search(excerpt)
+                or not DIRECT_EVENT.search(excerpt)):
             continue
         if payoff < .12:
             continue
