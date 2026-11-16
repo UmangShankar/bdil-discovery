@@ -23,7 +23,7 @@ def parse_vtt(content):
     narration. Extract genuinely new words and preserve their cue timing.
     """
     cues, previous_words = [], []
-    for part in re.split(r"\\n\\s*\\n", content.replace("\\r\\n", "\\n")):
+    for part in re.split(r"\n\s*\n", content.replace("\r\n", "\n")):
         lines = part.strip().splitlines()
         index = next((i for i, line in enumerate(lines) if TIME.search(line)), None)
         if index is None:
@@ -33,7 +33,7 @@ def parse_vtt(content):
         if b - a < 0.12:
             continue
         speech = html.unescape(TAG.sub("", " ".join(lines[index + 1:])))
-        words = re.sub(r"\\s+", " ", speech).strip().split()
+        words = re.sub(r"\s+", " ", speech).strip().split()
         if not words:
             continue
         overlap = 0
@@ -78,7 +78,7 @@ def validate(candidate,cues,duration):
     if not (0 <= a < b <= duration and 12 <= b-a <= 30):
         print(f"  Validation: invalid clip duration/bounds ({a:.2f}-{b:.2f})")
         return None
-    if not (12 <= len(hook) <= 85) or "\\n" in hook:
+    if not (12 <= len(hook) <= 85) or "\n" in hook:
         print("  Validation: invalid hook length or formatting")
         return None
     if not cues:
@@ -100,7 +100,7 @@ def validate(candidate,cues,duration):
     if b - payoff["end"] > 3 or payoff["end"] > b + .75:
         print("  Validation: payoff not close to clip ending")
         return None
-    if not re.search(r"[.!?][\\\"']?$", payoff["text"]):
+    if not re.search(r"[.!?][\"']?$", payoff["text"]):
         print("  Validation: clip doesn't end at a sentence boundary")
         return None
     return {"start": round(a, 2), "end": round(b, 2), "hook": hook,
