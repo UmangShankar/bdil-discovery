@@ -22,7 +22,23 @@ EVENTS = {
     "run": 1, "help": 2, "crazy": 2, "insane": 2,
 }
 QUESTION = re.compile(r"\?|\b(wait|what|why|how|look|watch|imagine)\b", re.I)
-AD = re.compile(r"\b(sponsor|subscribe|use my code|discount code|patreon|merch|giveaway)\b", re.I)
+AD = re.compile(r"\b(sponsor|subscribe|subscription|like and subscribe|drop a like|thank you.*watching|use my code|discount code|patreon|merch|giveaway)\b", re.I)
+# A subject (NPC/police/traffic) is not evidence of an event. Reactions alone
+# are not evidence either: a usable transcript-only clip needs an occurrence.
+OBSERVED_EVENT = re.compile(
+    r"\b(crash(?:ed|es|ing)?|explod(?:ed|es|ing)|explosion|"
+    r"glitch(?:ed|es|ing)?|ragdoll(?:ed)?|arrest(?:ed|s|ing)?|"
+    r"bust(?:ed|s)?|collid(?:ed|es|ing)|wreck(?:ed|s)?|"
+    r"fell|fall(?:s|ing)?|flew|launched|hit|hits|"
+    r"killed|escaped|chased|shot|shoot(?:s|ing)?|"
+    r"caught|stole|steal(?:s|ing)?)\b", re.I)
+# This filter is deliberately conservative for transcript-only discovery.
+# Gameplay predictions and trailer breakdowns are not observed gaming events.
+SPECULATION = re.compile(
+    r"\b(going to|will be|would be|might|could be|we expect|"
+    r"we won't|trailer|rockstar will|rockstar is going to|"
+    r"release date|prediction|rumou?r|theory)\b", re.I)
+
 STOP = {"the", "and", "for", "you", "that", "this", "with", "was", "are", "but", "not", "have", "from", "they", "what"}
 def clamp(x):
     return max(0.0, min(1.0, float(x)))
@@ -144,6 +160,16 @@ def rank(cues, duration, video=None, limit=5):
         hook, payoff, density, event, ad = text_signals(w)
         audio=normalized_activity(av, at, w["start"], w["end"])
         motion=normalized_activity(mv, mt, w["start"], w["end"])
+        # Quality gate: do not force five clips from a speculative explainer.
+        # A strong audio/motion peak can support a candidate only when there
+        # is also an observed event in the transcript. This cannot verify the
+        # video content; human review is still mandatory.
+        excerpt=w["excerpt"]
+        if (ad or SPECULATION.search(excerpt)
+                or not OBSERVED_EVENT.search(excerpt)):
+            continue
+        if payoff < .12:
+            continue
         # Renormalize only available signals; absence is not evidence of low activity.
         weights={"hook":25,"payoff":20,"speech":10,"event":15,"duration":5}
         if av: weights["audio"]=15
