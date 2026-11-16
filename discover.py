@@ -370,6 +370,10 @@ def pull_sheet_edits(ws, backlog):
 
 
 def push_sheet(ws, rows, digest_text):
+    # The P0 tracker adds columns; expand the existing Sheet grid before writing.
+    # This is non-destructive to rows and avoids an out-of-bounds API error.
+    if ws.col_count < len(FIELDS):
+        ws.add_cols(len(FIELDS) - ws.col_count)
     ws.clear()
     ws.update([FIELDS] + [[r.get(k, "") for k in FIELDS] for r in rows], value_input_option="RAW")
     ws.freeze(rows=1)
