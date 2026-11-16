@@ -1,76 +1,66 @@
-"""Sync the backlog between the Google Sheet and the Mac.
+"""Sync approved backlog from Google Sheets to local cutter and return private upload links.
 
-  pull (before clip.py):  python pull_backlog.py --out backlog.csv
-  push (after clip.py):   python pull_backlog.py --push --out backlog.csv
-
-Pull downloads the Sheet's "backlog" tab to backlog.csv (read-only access).
-Push writes status changes that clip.py made locally (in-progress, clipped, uploaded,
-skipped) back to the Sheet, matched by id, so the same row is never cut twice.
-It only moves a row forward; it never overwrites hooks or notes.
-
-Signs in as you with client_secret.json (no service-account key). Each mode keeps its
-own sign-in token; the first run of each opens a browser once.
+Pull: python pull_backlog.py --client-secret ../clipper/client_secret.json --out ../clipper/backlog.csv
+Push: python pull_backlog.py --push --client-secret ../clipper/client_secret.json --out ../clipper/backlog.csv
+Credentials remain on Mac. P0 gate is fail-closed.
 """
-import argparse, csv
+import argparse
+import csv
 from pathlib import Path
 import gspread
 from gspread.utils import rowcol_to_a1
+from p0_gate import gate_rows, sync_changes
 
 SHEET_ID = "1Oh4ginalP3ZMirlElEQ2ADyMu-PifJRBeVTrMkbqJEE"
 HERE = Path(__file__).resolve().parent
 TOKENS = Path("~/BadDayInLeonida").expanduser()
-ORDER = {"": 0, "ready": 1, "to-cut": 2, "in-progress": 3, "clipped": 4, "uploaded": 5}
-FINAL = {"skipped", "expired", "filtered"}
 
-ap = argparse.ArgumentParser()
-ap.add_argument("--out", default="backlog.csv", type=Path)
-ap.add_argument("--push", action="store_true", help="write local status changes back to the Sheet")
-ap.add_argument("--sheet", default=SHEET_ID)
-ap.add_argument("--client-secret", default=HERE / "client_secret.json", type=Path)
-a = ap.parse_args()
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", default="backlog.csv", type=Path)
+    ap.add_argument("--push", action="store_true")
+    ap.add_argument("--sheet", default=SHEET_ID)
+    ap.add_argument("--client-secret", default=HERE / "client_secret.json", type=Path)
+    args = ap.parse_args()
+    scope = "spreadsheets" if args.push else "spreadsheets.readonly"
+    gc = gspread.oauth(credentials_filename=str(args.client_secret),
+                      authorized_user_filename=str(TOKENS / ("sheets_rw_token.json" if args.push else "sheets_token.json")),
+                      scopes=[f"https://www.googleapis.com/auth/{scope}"])
+    ws = gc.open_by_key(args.sheet).worksheet("backlog")
+    rows = ws.get_all_values()
+    if not rows:
+        raise SystemExit("No backlog found; refusing to run cutter")
+    if not args.push:
+        try:
+            safe, held = gate_rows(rows)
+        except ValueError as exc:
+            raise SystemExit(f"SAFETY: {exc}. Run discovery to refresh Sheet schema first.")
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        with args.out.open("w", newline="", encoding="utf-8") as f:
+            csv.writer(f).writerows(safe)
+        for reason in held:
+            print("HOLD:", reason)
+        h = safe[0]
+        todo = sum(r[h.index("status")] == "to-cut" for r in safe[1:])
+        print(f"{len(rows)-1} rows saved, {todo} approved to-cut, {len(held)} held")
+        return
+    if not args.out.exists():
+        raise SystemExit(f"Local backlog missing: {args.out}")
+    with args.out.open(newline="", encoding="utf-8") as f:
+        local = {r["id"]: r for r in csv.DictReader(f)}
+    try:
+        updates = sync_changes(rows, local)
+    except ValueError as exc:
+        raise SystemExit(f"SYNC ERROR: {exc}")
+    if updates:
+        header = rows[0]
+        # Write source URLs and clip files before changing status to uploaded.
+        payload = [{"range": rowcol_to_a1(line, header.index(col) + 1),
+                    "values": [[value]]} for line, col, value in updates]
+        ws.batch_update(payload, value_input_option="RAW")
+        for line, col, value in updates:
+            print(f"Sheet row {line}: {col} -> {value[:100]}")
+    print(f"{len(updates)} cell update(s) written to the Sheet")
 
-scope = "spreadsheets" if a.push else "spreadsheets.readonly"
-gc = gspread.oauth(credentials_filename=str(a.client_secret),
-                   authorized_user_filename=str(TOKENS / ("sheets_rw_token.json" if a.push else "sheets_token.json")),
-                   scopes=[f"https://www.googleapis.com/auth/{scope}"])
-ws = gc.open_by_key(a.sheet).worksheet("backlog")
-rows = ws.get_all_values()
-
-if not a.push:
-    # Enforce rights on the file consumed by local clip.py, without modifying Sheet.
-    if rows:
-        hdr = rows[0]
-        if "rights" not in hdr or "status" not in hdr:
-            raise SystemExit("Missing rights/status columns: refusing unsafe pull")
-        ri, si = hdr.index("rights"), hdr.index("status")
-        gated = 0
-        for row in rows[1:]:
-            if len(row) > si and row[si] == "to-cut" and (len(row) <= ri or row[ri] != "allowlisted"):
-                row[si] = "ready"
-                gated += 1
-        if gated:
-            print(f"SAFETY: held {gated} unverified to-cut row(s)")
-    with a.out.open("w", newline="", encoding="utf-8") as f:
-        csv.writer(f).writerows(rows)
-    todo = sum(1 for r in rows[1:] if r and r[0] == "to-cut")
-    print(f"{len(rows) - 1} rows saved to {a.out}, {todo} marked to-cut")
-    raise SystemExit
-
-head = rows[0]
-si, ii = head.index("status"), head.index("id")
-sheet_pos = {r[ii]: (n, r[si]) for n, r in enumerate(rows[1:], start=2) if len(r) > ii}
-with a.out.open(newline="", encoding="utf-8") as f:
-    local = {r["id"]: r.get("status", "") for r in csv.DictReader(f)}
-
-updates = []
-for rid, new in local.items():
-    if rid not in sheet_pos:
-        continue
-    row_no, old = sheet_pos[rid]
-    forward = new in FINAL or ORDER.get(new, -1) > ORDER.get(old, 99)
-    if new and new != old and old not in FINAL and forward:
-        updates.append({"range": rowcol_to_a1(row_no, si + 1), "values": [[new]]})
-        print(f"{rid}: {old or '-'} -> {new}")
-if updates:
-    ws.batch_update(updates, value_input_option="RAW")
-print(f"{len(updates)} status change(s) written to the Sheet")
+if __name__ == "__main__":
+    main()
