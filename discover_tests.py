@@ -26,6 +26,26 @@ class DiscoveryFiltersTest(unittest.TestCase):
     def test_non_latin_english_queue_filter(self):
         self.assertFalse(discover.eligible_moment("GTA6 人物角色NPC混乱", self.cfg))
 
+    def test_date_added_is_first_column(self):
+        self.assertEqual(discover.FIELDS[0], "Date Added")
+
+    def test_original_date_is_preserved(self):
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "backlog.csv"
+            path.write_text(
+                "status,id,first_seen,title\\n"
+                "ready,yt:old,2026-11-12T10:29:18Z,GTA 6 NPC chaos\\n",
+                encoding="utf-8",
+            )
+            rows = discover.load_csv(path)
+            self.assertEqual(rows["yt:old"]["Date Added"], "2026-11-12")
+            rows["yt:old"]["Date Added"] = "2026-11-12"
+            discover.save_csv(path, list(rows.values()))
+            again = discover.load_csv(path)
+            self.assertEqual(again["yt:old"]["Date Added"], "2026-11-12")
+
     def test_metadata_only_does_not_override_rights(self):
         candidate = dict(id="yt:test", source="youtube", title="GTA 6 NPC chaos",
                          creator="Unknown Creator", url="https://www.youtube.com/watch?v=test",
