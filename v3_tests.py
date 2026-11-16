@@ -65,7 +65,7 @@ amazing<00:00:04.200><c> today.</c>
 
     def test_short_suggestion_recovers_full_setup(self):
         cues = [
-            {"start": 565.0, "end": 565.9, "text": "Previous statement."},
+            {"start": 560.0, "end": 563.9, "text": "Previous statement."},
             {"start": 564.0, "end": 569.9, "text": "In GTA 5, traffic was easily blocked."},
             {"start": 570.0, "end": 577.0, "text": "But GTA 6 drivers might find another route."},
         ]
