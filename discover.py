@@ -25,7 +25,7 @@ UA = "BadDayInLeonida-discovery/1.0 (by u/BadDayInLeonida)"
 VIDEO_DOMAINS = ("v.redd.it", "youtube.com", "youtu.be", "twitch.tv", "streamable.com", "medal.tv")
 
 # Columns the cutter (clip.py) reads: status, url, hook, start, end, captions.
-FIELDS = ["status", "tier", "score", "source", "title", "creator", "url", "hook", "start", "end",
+FIELDS = ["Date Added", "status", "tier", "score", "source", "title", "creator", "url", "hook", "start", "end",
           "captions", "views", "views_per_h", "age_h", "brand_hits", "flags", "rights",
           "published_at", "first_seen", "id", "notes", "rights_evidence", "rights_approved_by",
           "rights_approved_at", "youtube", "clip_file"]
@@ -271,7 +271,11 @@ def load_csv(path):
     if not path.exists():
         return {}
     with path.open(newline="", encoding="utf-8") as f:
-        return {r["id"]: {k: r.get(k, "") for k in FIELDS} for r in csv.DictReader(f)}
+        backlog = {r["id"]: {k: r.get(k, "") for k in FIELDS} for r in csv.DictReader(f)}
+        for row in backlog.values():
+            if not row["Date Added"] and row.get("first_seen"):
+                row["Date Added"] = row["first_seen"][:10]
+        return backlog
 
 
 def save_csv(path, rows):
@@ -287,7 +291,7 @@ def merge(backlog, scored, cfg):
         row = backlog.get(s["id"])
         if row is None:
             row = {k: "" for k in FIELDS}
-            row.update(status="ready", first_seen=iso(NOW))
+            row.update(status="ready", first_seen=iso(NOW), **{"Date Added": NOW.strftime("%Y-%m-%d")})
             backlog[s["id"]] = row
             added += 1
         if row["status"] in DONE:
@@ -308,6 +312,11 @@ def merge(backlog, scored, cfg):
         if row["status"] == "ready" and row.get("first_seen"):
             if (NOW - parse_ts(row["first_seen"])).total_seconds() / 3600 > exp:
                 row["status"] = "expired"
+    # Preserve the original discovery date for all existing records.
+    # Never replace it with today's date on a later discovery sweep.
+    for row in backlog.values():
+        if not row.get("Date Added") and row.get("first_seen"):
+            row["Date Added"] = row["first_seen"][:10]
     return added
 
 
