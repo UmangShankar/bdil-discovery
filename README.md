@@ -31,10 +31,9 @@ Discovery now pre-filters for GTA VI moment-oriented English-language titles
 and rejects explainers, trailers, mods and unrelated content. This is **only
 metadata screening**, not AI viewing or proof the footage is a good Short.
 
-The Mac pull script prevents `to-cut` rows with rights other than
-`allowlisted` from reaching the local cutter. A `check` row needs verified
-permission; giving credit alone does not establish usage rights.
-Previous uploads are unchanged. Approve and inspect footage before publishing.
+P0 update: rights notes are optional for private drafts. An English hook is still
+required for backlog processing. Rights and source usage must be reviewed
+before any public release; credit alone does not establish usage rights.
 
 ## Upgrade the local cutter to v2
 
@@ -51,8 +50,8 @@ reads or copies YouTube `token.json`, OAuth `client_secret.json`, or videos.
 Do not commit your local clipper directory or secrets to GitHub.
 
 Changes: auto-pick up to one strong event window (22 seconds, 2.5 seconds
-lead-in), skip sources without an unusually distinct peak, and require both
-`rights=allowlisted` and a human-supplied `hook` for backlog processing.
+lead-in), skip sources without an unusually distinct peak, and require a human-supplied `hook` for backlog processing. Run the P0
+private-draft patch below to make the old rights gate optional.
 Direct one-off renders still work, but direct upload is blocked. Backlog
 `--upload` continues to upload **private**, not public. The detection
 remains heuristic, not video understanding or guaranteed high retention.
@@ -68,47 +67,37 @@ python clip.py --file /absolute/path/to/sample.mp4 --start 10 --end 25 --hook "E
 Do not run the upgrade twice: it is deliberately fail-closed if the original
 code has already been replaced.
 
-## P0: audited private-upload pipeline (16 Nov 2026)
 
-The production handoff is now **fail-closed**. A row in the Google Sheet can
-be set to `status=to-cut` only after these approval fields are completed:
+## P0: optional rights notes for PRIVATE draft production
 
-- `rights=allowlisted`: creator must be on the verified creator allowlist in `config.yaml`.
-  This is assigned by discovery, **not** manually by the operator.
-- `rights_evidence`: a durable URL to the **actual permission / licence record** or,
-  for footage you recorded and own, `owned:<specific local evidence reference>`.
-  **The source-video URL or mere credit is NOT rights evidence.**
-- `rights_approved_by`: person who reviewed the evidence.
-- `rights_approved_at`: date of approval (ISO date recommended).
-- `hook`: approved truthful English on-screen hook. Optional `start` and `end`
-  may be set to preserve the setup and payoff of a specific segment.
+The P0 backlog handoff now accepts any `status=to-cut` source with a valid
+`url` and an editorial `hook` (excluding spoiler-flagged content). Rights
+fields `rights`, `rights_evidence`, `rights_approved_by` and
+`rights_approved_at` can be completed if available, **but are optional for
+PRIVATE drafts**. Rights `check` does not prevent private clipping. This
+does not grant permission to publish copyrighted material publicly.
+Final public release remains your manual decision after checking rights.
 
-Unapproved `to-cut` entries are downgraded to `ready` in the local copy ONLY
-and the script prints the reason. No rights status is inferred from views,
-creator popularity, or YouTube availability.
+The private upload pipeline returns `status=uploaded`, `youtube` URL
+and `clip_file` to the Sheet. Discovery preserves these fields across
+sweeps. The uploader continues using `privacyStatus=private`.
 
-After a successful **private** upload, `pull_backlog.py --push` writes
-`status=uploaded`, `youtube` Shorts URL and `clip_file` to the Google Sheet.
-Those fields persist across discovery sweeps. A missing video URL prevents
-recording uploaded status. Final status is never regressed.
+### One-time P0 rollout on your Mac
 
-### One-time rollout (Mac)
+```bash
+cd ~/BadDayInLeonida/discovery
+git pull origin main
+python p0_enable_private_drafts.py --target ../clipper
+python -m py_compile ../clipper/clip.py
+python -m unittest discover_tests.py p0_tests.py
+python p0_smoke.py --clipper ../clipper
+```
 
-1. From `~/BadDayInLeonida/discovery`, run `git pull origin main`.
-2. In GitHub Actions > Clip discovery, select **Run workflow** once, then check
-   the Sheet has `rights_evidence`, `rights_approved_by`,
-   `rights_approved_at`, `youtube`, `clip_file` columns.
-3. Use the Python environment with `numpy`, `PyYAML`, `gspread`,
-   `google-auth-oauthlib`, `google-api-python-client`, `yt-dlp`
-   and the installed clipper requirements.
-4. Run the offline test `python -m unittest discover_tests.py p0_tests.py` then
-   `python p0_smoke.py --clipper ../clipper`.
-5. Fill approval fields **only for truly permitted content**; for a first
-   real integration test use your own GTA gameplay rather than a third-party
-   commentary video. Verify the rendered output and the resulting private
-   entry in YouTube Studio.
+Next run GitHub Actions > **Clip discovery** > **Run workflow** to add the new
+tracking columns to the live Sheet. The offline smoke test must pass before
+you rely on batch processing; it does not upload a real video.
 
-### Daily Mac batch (still manual until P1 scheduler)
+### Daily private draft run (manual until P1)
 
 ```bash
 cd ~/BadDayInLeonida/clipper
@@ -118,9 +107,7 @@ python clip.py --backlog backlog.csv --upload
 python ~/BadDayInLeonida/discovery/pull_backlog.py --push --client-secret client_secret.json --out backlog.csv
 ```
 
-Never run the batch for unapproved sources. All uploads remain **private**
-and require a further, separate human decision before public publishing.
-
-**Limits:** The offline smoke test stubs the actual YouTube upload; it does
-not prove Mac OAuth, source download, caption generation or YouTube response.
-One full live test with a rights-cleared backlog source is still required.
+No automatic public publishing. This batch still needs a real integration
+test using one selected Sheet row to validate Mac OAuth, clip rendering and
+the private YouTube URL/status returning to the Sheet. Manual uploads
+outside backlog do not get reconciled automatically.
