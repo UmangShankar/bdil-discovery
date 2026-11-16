@@ -40,6 +40,28 @@ class TestV4(unittest.TestCase):
         self.assertFalse(v4_local.text_signals(base)[-1])
         self.assertTrue(v4_local.text_signals(ad)[-1])
 
+    def test_reject_speculative_explainer(self):
+        speculative = [
+            {"start":i*2.0,"end":i*2.0+1.9,
+             "text":"Rockstar is going to show how NPCs will drive and might crash!"}
+            for i in range(80)
+        ]
+        self.assertEqual(v4_local.rank(speculative, 160), [])
+
+    def test_reject_outro_and_generic_discussion(self):
+        outro = [
+            {"start":i*2.0,"end":i*2.0+1.9,
+             "text":"Thank you for watching! Don't forget to subscribe to the channel."}
+            for i in range(80)
+        ]
+        generic = [
+            {"start":i*2.0,"end":i*2.0+1.9,
+             "text":"How NPCs behave on the street is very interesting in Grand Theft Auto."}
+            for i in range(80)
+        ]
+        self.assertEqual(v4_local.rank(outro, 160), [])
+        self.assertEqual(v4_local.rank(generic, 160), [])
+
     def test_empty(self):
         self.assertEqual(v4_local.rank([],100),[])
 
