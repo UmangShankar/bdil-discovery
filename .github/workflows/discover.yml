@@ -24,7 +24,7 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - name: Validate discovery filters
-        run: python -m unittest discover_tests.py p0_tests.py
+        run: python -m unittest discover_tests.py p0_tests.py v3_tests.py
       - name: Google sign-in (no key file)
         if: ${{ vars.WIF_PROVIDER != '' }}
         uses: google-github-actions/auth@v2
