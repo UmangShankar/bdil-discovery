@@ -22,7 +22,7 @@ Automated validation command:
 .venv/bin/python -m unittest v4_tests v4_integration_tests v3_tests discover_tests p0_tests
 ```
 
-61 tests pass, including actual H.264, VP9 and AV1 decode, forced OpenCV failure,
+64 tests pass, including actual H.264, VP9 and AV1 decode, forced OpenCV failure,
 corrupt/missing media, missing subtitles, silence/steady tone, transcript semantic
 regressions, incomplete payoff, overlap/duplicate removal, zero candidates,
 NaN/infinite/out-of-duration timestamps, JSON, source-duration precedence,
@@ -107,6 +107,12 @@ Remaining rollout criteria:
 - Full 4K scan performance remains unresolved; successful full-timeline analysis
   used the low-resolution version of the same source.
 
-No merge, public/private upload, automatic publishing, credential changes, or V3
+Concurrent remote commits `e317b49` and `d47d875` arrived during delivery.
+They were fetched and merged into the existing feature branch without rewriting
+history. Their direct-event vocabulary, FFmpeg adapter interface and three new
+regressions are preserved; historical-context rejection applies to action
+classification, so valid educational comparisons remain eligible.
+
+No merge into main, public/private upload, automatic publishing, credential changes, or V3
 replacement occurred. Work remains on PR #1:
 https://github.com/UmangShankar/bdil-discovery/pull/1

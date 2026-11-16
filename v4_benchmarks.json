@@ -2,7 +2,7 @@
   "date": "2026-11-16",
   "recommendation": "NO-GO for replacing V3",
   "tests": {
-    "passed": 61,
+    "passed": 64,
     "command": ".venv/bin/python -m unittest v4_tests v4_integration_tests v3_tests discover_tests p0_tests"
   },
   "benchmarks": [

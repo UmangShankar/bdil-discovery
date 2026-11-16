@@ -39,6 +39,16 @@ SPECULATION = re.compile(
     r"we won't|trailer|rockstar will|rockstar is going to|"
     r"release date|prediction|rumou?r|theory|I.d bet|never confirmed|reportedly|former.*developer says)\b", re.I)
 
+HISTORICAL_CONTEXT = re.compile(
+    r"\b(since 2008|since 20\d\d|years? later|back in 20\d\d|"
+    r"pandemic|full production|rockstar's own engine|the first game|"
+    r"reportedly|red dead redemption cleaned up)\b", re.I)
+DIRECT_EVENT = re.compile(
+    r"\b(crash(?:ed|es|ing)?|explod(?:ed|es|ing)|explosion|"
+    r"glitch(?:ed|es|ing)?|ragdoll(?:ed)?|arrest(?:ed|s|ing)?|"
+    r"collid(?:ed|es|ing)|wreck(?:ed|s)?|fell|flew|launched|"
+    r"killed|escaped|chased|shot|shoot(?:s|ing)?|caught|stole)\b", re.I)
+
 STOP = {"the", "and", "for", "you", "that", "this", "with", "was", "are", "but", "not", "have", "from", "they", "what"}
 def clamp(x):
     return max(0.0, min(1.0, float(x)))
@@ -66,6 +76,13 @@ def audio_activity(video, sample_rate=8000, hop=.5):
 def motion_activity(video, interval=1.):
     from v4_media import frames
     times,values,_,stage = frames(video,interval)
+    return (times,values) if stage['status']=='ok' else ([],[])
+
+
+def ffmpeg_motion_activity(video, interval=1.0):
+    """Compatibility with the concurrently added explicit FFmpeg adapter."""
+    from v4_media import frames
+    times,values,_,stage = frames(video,interval,force_ffmpeg=True)
     return (times,values) if stage['status']=='ok' else ([],[])
 
 
@@ -177,7 +194,7 @@ def discover(cues, duration, video=None, limit=5, media=None):
         text, opening, ending = w['excerpt'], w['opening'], w['payoff']
         reasons = []
         reaction = bool(REACTION.search(opening))
-        occurrence = bool(OBSERVED_EVENT.search(text)) and not HISTORICAL.search(text)
+        occurrence = bool(DIRECT_EVENT.search(text)) and not (HISTORICAL.search(text) or HISTORICAL_CONTEXT.search(text))
         insight = bool(INSIGHT.search(ending)) and bool(GAME.search(text))
         comparison = bool(re.search(r'\d',text) and INSIGHT.search(text) and GAME.search(text))
         topic_link = any(t.search(opening) and t.search(ending) for t in TOPICS)
