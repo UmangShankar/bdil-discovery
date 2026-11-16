@@ -128,7 +128,7 @@ def validate(candidate, cues, duration):
     # Find a sentence that ends close to the requested cut; prefer the
     # completion closest to the model's end time (within ~3 seconds).
     sentences = [(i, c) for i, c in enumerate(cues)
-                 if a + 8 <= c["end"] <= min(duration, b + 3.5)
+                 if a + 3 <= c["end"] <= min(duration, b + 3.5)
                  and re.search(r"[.!?][\\\"']?$", c["text"])]
     if not sentences:
         print("  Validation: no complete sentence near the proposed payoff")
