@@ -37,6 +37,19 @@ ws = gc.open_by_key(a.sheet).worksheet("backlog")
 rows = ws.get_all_values()
 
 if not a.push:
+    # Enforce rights on the file consumed by local clip.py, without modifying Sheet.
+    if rows:
+        hdr = rows[0]
+        if "rights" not in hdr or "status" not in hdr:
+            raise SystemExit("Missing rights/status columns: refusing unsafe pull")
+        ri, si = hdr.index("rights"), hdr.index("status")
+        gated = 0
+        for row in rows[1:]:
+            if len(row) > si and row[si] == "to-cut" and (len(row) <= ri or row[ri] != "allowlisted"):
+                row[si] = "ready"
+                gated += 1
+        if gated:
+            print(f"SAFETY: held {gated} unverified to-cut row(s)")
     with a.out.open("w", newline="", encoding="utf-8") as f:
         csv.writer(f).writerows(rows)
     todo = sum(1 for r in rows[1:] if r and r[0] == "to-cut")
