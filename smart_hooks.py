@@ -122,7 +122,7 @@ def validate(candidate, cues, duration):
         print(f"  Validation: invalid proposed bounds ({a:.2f}-{b:.2f})")
         return None
     if not (12 <= len(hook) <= 85) or "\n" in hook:
-        print("  Validation: invalid hook length or formatting")
+        print(f"  Validation: hook invalid (length={len(hook)}, newline={'yes' if chr(10) in hook else 'no'}; expected 12-85 chars)")
         return None
 
     # Find a sentence that ends close to the requested cut; prefer the
@@ -158,6 +158,56 @@ def validate(candidate, cues, duration):
             "payoff_cue": i, "payoff": payoff["text"],
             "reason": str(candidate.get("reason", ""))[:220]}
 
+def rewrite_invalid_hook(candidate, cues, title, api_key):
+    """One bounded rewrite of malformed AI hook; original clip boundaries stay unchanged."""
+    if not isinstance(candidate, dict) or candidate.get("skip"):
+        return candidate
+    raw = candidate.get("hook", "")
+    hook = raw.strip() if isinstance(raw, str) else ""
+    if 12 <= len(hook) <= 85 and "\n" not in hook:
+        return candidate
+    try:
+        start, end = float(candidate["start"]), float(candidate["end"])
+    except (KeyError, TypeError, ValueError):
+        return candidate
+    selected = [c["text"] for c in cues
+                if c["end"] >= max(0, start - 5) and c["start"] <= end + 3]
+    excerpt = " ".join(selected)[:3500]
+    if not excerpt:
+        return candidate
+    print(f"  AI hook length={len(hook)}; requesting one grounded rewrite")
+    prompt = (
+        "Rewrite the proposed YouTube Short hook using ONLY the supplied transcript. "
+        "Return JSON with exactly one string field: hook. "
+        "Hook must be 18-65 characters, plain English, ONE line, curiosity-driven, "
+        "factually faithful, and must not claim speculation is confirmed. "
+        "Do not add facts or gameplay not present in the words. "
+        f"Video title: {title}\nPrevious hook: {hook[:250]}\n"
+        f"Selected transcript: {excerpt}"
+    )
+    try:
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions", timeout=45,
+            headers={"Authorization": "Bearer " + api_key},
+            json={"model": os.getenv("BDIL_AI_MODEL", "gpt-4o-mini"),
+                  "response_format": {"type": "json_object"},
+                  "messages": [
+                      {"role": "system", "content": "Respond with JSON only. Ground hook in evidence."},
+                      {"role": "user", "content": prompt},
+                  ]},
+        )
+        response.raise_for_status()
+        revised = json.loads(response.json()["choices"][0]["message"]["content"]).get("hook")
+        if isinstance(revised, str):
+            revised = re.sub(r"\\s+", " ", revised).strip().strip('"“”')
+            if 12 <= len(revised) <= 85 and "\n" not in revised:
+                return {**candidate, "hook": revised}
+    except (requests.RequestException, KeyError, IndexError, TypeError, ValueError) as exc:
+        print("  Hook rewrite request failed:", str(exc)[:160])
+    print("  Hook rewrite failed validation; skipping")
+    return candidate
+
+
 def propose(cues,duration,title):
     sample=" ".join(x["text"] for x in cues[:150])
     letters=[c for c in sample if c.isalpha()]
@@ -192,6 +242,7 @@ def propose(cues,duration,title):
                               {"role":"user","content":instruction}]})
         r.raise_for_status()
         result=json.loads(r.json()["choices"][0]["message"]["content"])
+        result = rewrite_invalid_hook(result, cues, title, key)
         chosen=validate(result,cues,duration)
         if not chosen:
             print("  AI candidate failed payoff/duration checks; skipping")
