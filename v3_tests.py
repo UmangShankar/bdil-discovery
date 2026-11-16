@@ -66,7 +66,7 @@ amazing<00:00:04.200><c> today.</c>
     def test_short_suggestion_recovers_full_setup(self):
         cues = [
             {"start": 565.0, "end": 565.9, "text": "Previous statement."},
-            {"start": 566.0, "end": 569.9, "text": "In GTA 5, traffic was easily blocked."},
+            {"start": 564.0, "end": 569.9, "text": "In GTA 5, traffic was easily blocked."},
             {"start": 570.0, "end": 577.0, "text": "But GTA 6 drivers might find another route."},
         ]
         candidate = {"start": 570.0, "end": 577.3,
@@ -74,7 +74,7 @@ amazing<00:00:04.200><c> today.</c>
                      "payoff_cue": 2}
         chosen = validate(candidate, cues, 674)
         self.assertIsNotNone(chosen)
-        self.assertEqual(chosen["start"], 566.0)
+        self.assertEqual(chosen["start"], 564.0)
         self.assertAlmostEqual(chosen["end"], 577.35)
 
     def test_short_suggestion_without_full_setup_is_rejected(self):
