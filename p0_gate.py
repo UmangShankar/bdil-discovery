@@ -1,7 +1,7 @@
 """Fail-closed editorial gate and status reconciliation, testable without credentials."""
 from urllib.parse import urlparse
 
-REQUIRED = ("status", "url", "hook")
+REQUIRED = ("status", "url")
 ORDER = {"": 0, "ready": 1, "to-cut": 2, "in-progress": 3, "clipped": 4, "uploaded": 5}
 FINAL = {"skipped", "expired", "filtered"}
 
@@ -16,8 +16,6 @@ def approval_error(row):
     """Private-draft gate only. Rights fields are optional and never block drafts."""
     if not row.get("url", "").strip():
         return "source URL missing"
-    if not row.get("hook", "").strip():
-        return "editorial hook missing"
     if "SPOILER" in (row.get("flags") or "").upper():
         return "spoiler"
     return None
@@ -61,6 +59,10 @@ def sync_changes(remote, local):
             continue
         if new == "uploaded" and not (changed.get("youtube") or "").startswith("https://youtube.com/shorts/"):
             continue
+        # AI-generated edits are returned only when the operator left those cells blank.
+        for col in ("hook", "start", "end"):
+            if col in head and not row.get(col) and (changed.get(col) or "").strip():
+                updates.append((line, col, changed[col].strip()))
         for col in ("youtube", "clip_file"):
             value = (changed.get(col) or "").strip()
             if value and not row.get(col):
