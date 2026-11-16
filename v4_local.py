@@ -115,7 +115,7 @@ def text_signals(window):
     ending=" ".join(words[-30:])
     first=clamp((int(bool(QUESTION.search(opening))) * .55 + sum(EVENTS.get(w, 0) for w in words[:15])*.07))
     payoff=clamp((sum(EVENTS.get(w, 0) for w in re.findall(r"[a-z']+", ending))*.075
-                  + .2*int("!" in text[-160:] or "?" in text[-160:]))
+                  + .2*int("!" in text[-160:] or "?" in text[-160:])))
     density=clamp(len(words)/max(1, window["end"]-window["start"])/3.4)
     event_score=clamp(event/12)
     return first, payoff, density, event_score, bool(AD.search(text))
