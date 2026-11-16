@@ -63,6 +63,27 @@ amazing<00:00:04.200><c> today.</c>
         self.assertEqual(cues[1]["text"], "This is a huge improvement")
         self.assertLess(cues[0]["end"], cues[1]["end"])
 
+    def test_short_suggestion_recovers_full_setup(self):
+        cues = [
+            {"start": 565.0, "end": 565.9, "text": "Previous statement."},
+            {"start": 566.0, "end": 569.9, "text": "In GTA 5, traffic was easily blocked."},
+            {"start": 570.0, "end": 577.0, "text": "But GTA 6 drivers might find another route."},
+        ]
+        candidate = {"start": 570.0, "end": 577.3,
+                     "hook": "NPC traffic could finally get smarter!",
+                     "payoff_cue": 2}
+        chosen = validate(candidate, cues, 674)
+        self.assertIsNotNone(chosen)
+        self.assertEqual(chosen["start"], 566.0)
+        self.assertAlmostEqual(chosen["end"], 577.35)
+
+    def test_short_suggestion_without_full_setup_is_rejected(self):
+        cues = [{"start": 566.0, "end": 569.9, "text": "Incomplete setup"},
+                {"start": 570.0, "end": 577.0, "text": "The ending is here."}]
+        self.assertIsNone(validate({"start": 570, "end": 577,
+            "hook": "NPC traffic could finally get smarter!",
+            "payoff_cue": 1}, cues, 674))
+
     def test_far_from_sentence_end_rejected(self):
         cues = [{"start": 1, "end": 3, "text": "Setup."},
                 {"start": 24, "end": 29, "text": "Payoff."}]
