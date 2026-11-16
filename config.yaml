@@ -73,8 +73,8 @@ backlog:
 
 # V2: pre-filter source metadata; this is not actual video quality analysis.
 english_titles_only: true
-moment_title_pattern: '(?i)\\b(npcs?|police|cops?|chase|crash|fails?|funny|ragdoll|physics|glitch|chaos|arrested|busted|explosion|wild|insane|unlucky|karma|gator|alligator)\\b'
+moment_title_pattern: '(?i)\b(npcs?|police|cops?|chase|crash|fails?|funny|ragdoll|physics|glitch|chaos|arrested|busted|explosion|wild|insane|unlucky|karma|gator|alligator)\b'
 reject_title_patterns:
-  - '(?i)\\b(spider[- ]?man|superheroes|minecraft|gta\\s*5|gta\\s*v|modded|mods?)\\b'
-  - '(?i)\\b(explained|breakdown|theory|everything you need|details? about|analysis|prediction|rumou?r|leak|trailer|review|reacts?|reaction|update|confirmed|release|launch)\\b'
-  - '(?i)\\b(ai[- ]generated|fan[- ]made|concept|unreal engine|ue5|roleplay|fivem)\\b'
+  - '(?i)\b(spider[- ]?man|superheroes|minecraft|gta\s*5|gta\s*v|modded|mods?)\b'
+  - '(?i)\b(explained|breakdown|theory|everything you need|details? about|analysis|prediction|rumou?r|leak|trailer|review|reacts?|reaction|update|confirmed|release|launch)\b'
+  - '(?i)\b(ai[- ]generated|fan[- ]made|concept|unreal engine|ue5|roleplay|fivem)\b'
