@@ -67,3 +67,60 @@ python clip.py --file /absolute/path/to/sample.mp4 --start 10 --end 25 --hook "E
 
 Do not run the upgrade twice: it is deliberately fail-closed if the original
 code has already been replaced.
+
+## P0: audited private-upload pipeline (16 Nov 2026)
+
+The production handoff is now **fail-closed**. A row in the Google Sheet can
+be set to `status=to-cut` only after these approval fields are completed:
+
+- `rights=allowlisted`: creator must be on the verified creator allowlist in `config.yaml`.
+  This is assigned by discovery, **not** manually by the operator.
+- `rights_evidence`: a durable URL to the **actual permission / licence record** or,
+  for footage you recorded and own, `owned:<specific local evidence reference>`.
+  **The source-video URL or mere credit is NOT rights evidence.**
+- `rights_approved_by`: person who reviewed the evidence.
+- `rights_approved_at`: date of approval (ISO date recommended).
+- `hook`: approved truthful English on-screen hook. Optional `start` and `end`
+  may be set to preserve the setup and payoff of a specific segment.
+
+Unapproved `to-cut` entries are downgraded to `ready` in the local copy ONLY
+and the script prints the reason. No rights status is inferred from views,
+creator popularity, or YouTube availability.
+
+After a successful **private** upload, `pull_backlog.py --push` writes
+`status=uploaded`, `youtube` Shorts URL and `clip_file` to the Google Sheet.
+Those fields persist across discovery sweeps. A missing video URL prevents
+recording uploaded status. Final status is never regressed.
+
+### One-time rollout (Mac)
+
+1. From `~/BadDayInLeonida/discovery`, run `git pull origin main`.
+2. In GitHub Actions > Clip discovery, select **Run workflow** once, then check
+   the Sheet has `rights_evidence`, `rights_approved_by`,
+   `rights_approved_at`, `youtube`, `clip_file` columns.
+3. Use the Python environment with `numpy`, `PyYAML`, `gspread`,
+   `google-auth-oauthlib`, `google-api-python-client`, `yt-dlp`
+   and the installed clipper requirements.
+4. Run the offline test `python -m unittest discover_tests.py p0_tests.py` then
+   `python p0_smoke.py --clipper ../clipper`.
+5. Fill approval fields **only for truly permitted content**; for a first
+   real integration test use your own GTA gameplay rather than a third-party
+   commentary video. Verify the rendered output and the resulting private
+   entry in YouTube Studio.
+
+### Daily Mac batch (still manual until P1 scheduler)
+
+```bash
+cd ~/BadDayInLeonida/clipper
+git -C ~/BadDayInLeonida/discovery pull -q
+python ~/BadDayInLeonida/discovery/pull_backlog.py --client-secret client_secret.json --out backlog.csv
+python clip.py --backlog backlog.csv --upload
+python ~/BadDayInLeonida/discovery/pull_backlog.py --push --client-secret client_secret.json --out backlog.csv
+```
+
+Never run the batch for unapproved sources. All uploads remain **private**
+and require a further, separate human decision before public publishing.
+
+**Limits:** The offline smoke test stubs the actual YouTube upload; it does
+not prove Mac OAuth, source download, caption generation or YouTube response.
+One full live test with a rights-cleared backlog source is still required.
