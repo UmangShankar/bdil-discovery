@@ -28,12 +28,13 @@ class DiscoveryFiltersTest(unittest.TestCase):
 
     def test_metadata_only_does_not_override_rights(self):
         candidate = dict(id="yt:test", source="youtube", title="GTA 6 NPC chaos",
-                         creator="Unknown Creator", published=discover.NOW,
+                         creator="Unknown Creator", url="https://www.youtube.com/watch?v=test",
+                         published=discover.NOW,
                          views=5000, engagement=.1, outlier=1, lookback=48,
                          velocity_target=2000)
         rows = discover.score([candidate], self.cfg)
-        if rows:
-            self.assertEqual(rows[0]["rights"], "check")
+        self.assertEqual(len(rows), 1, "Expected a scored candidate to test rights handling")
+        self.assertEqual(rows[0]["rights"], "check")
 
 if __name__ == "__main__":
     unittest.main()
