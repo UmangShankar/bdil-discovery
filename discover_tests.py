@@ -35,8 +35,8 @@ class DiscoveryFiltersTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "backlog.csv"
             path.write_text(
-                "status,id,first_seen,title\\n"
-                "ready,yt:old,2026-11-12T10:29:18Z,GTA 6 NPC chaos\\n",
+                "status,id,first_seen,title\n"
+                "ready,yt:old,2026-11-12T10:29:18Z,GTA 6 NPC chaos\n",
                 encoding="utf-8",
             )
             rows = discover.load_csv(path)
