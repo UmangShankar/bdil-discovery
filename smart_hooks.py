@@ -128,6 +128,9 @@ def propose(cues,duration,title):
        "Speculative content must use speculative hook language. If no suitable moment, return "
        "{\"skip\":true}. Otherwise respond with JSON fields start, end, hook, payoff_cue "
        "(zero-based index of the transcript cue with the payoff), reason. "
+       "IMPORTANT: The selected final payoff cue must end in a full stop, "
+       "question mark or exclamation mark, and end must equal that cue's "
+       "end timestamp plus approximately 0.3 seconds. Avoid cut-off sentences. "
        f"Title: {title}; duration: {duration}\nTranscript:\n{transcript}")
     try:
         r=requests.post("https://api.openai.com/v1/chat/completions",timeout=100,
