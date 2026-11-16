@@ -208,48 +208,142 @@ def rewrite_invalid_hook(candidate, cues, title, api_key):
     return candidate
 
 
-def propose(cues,duration,title):
-    sample=" ".join(x["text"] for x in cues[:150])
-    letters=[c for c in sample if c.isalpha()]
-    if len(cues)<8 or not letters or sum(c.isascii() for c in letters)/len(letters)<.92:
+def build_windows(cues, duration, limit=72):
+    """Offer only complete, self-contained 12–30s transcript windows.
+
+    Boundary cues must begin after a punctuation boundary (or a >=0.6s
+    silence) and end at punctuation. The model never supplies timestamps.
+    """
+    if not cues or duration <= 0:
+        return []
+    ends = [i for i, c in enumerate(cues)
+            if c["end"] <= duration and re.search(r"[.!?][\"']?$", c["text"])]
+    all_windows = []
+    for j in ends:
+        final = cues[j]
+        for i in range(max(0, j - 55), j):
+            first = cues[i]
+            if first["start"] >= final["end"]:
+                continue
+            span = final["end"] + .35 - first["start"]
+            if span < 12:
+                continue
+            if span > 30:
+                break
+            if i:
+                previous = cues[i - 1]
+                clean_start = (re.search(r"[.!?][\"']?$", previous["text"])
+                               or first["start"] - previous["end"] >= .6)
+                if not clean_start:
+                    continue
+            passage = " ".join(x["text"] for x in cues[i:j + 1])
+            word_count = len(passage.split())
+            if word_count < 24:
+                continue
+            all_windows.append({
+                "start": round(first["start"], 2),
+                "end": round(final["end"] + .35, 2),
+                "payoff_cue": j,
+                "payoff": final["text"],
+                "excerpt": passage[:1050],
+                "score": (abs(span - 20) / 8
+                          + (5 if word_count < 35 else 0)
+                          + (3 if word_count > 110 else 0)),
+            })
+    # At most one strongest candidate per ~12s of the source. This makes
+    # selections broadly distributed rather than 72 nearly identical clips.
+    buckets = {}
+    for w in sorted(all_windows, key=lambda x: x["score"]):
+        bucket = int(w["start"] // 12)
+        if bucket not in buckets:
+            buckets[bucket] = w
+    ranked = sorted(buckets.values(), key=lambda x: x["score"])[:limit]
+    chosen = sorted(ranked, key=lambda x: x["start"])
+    return [{**w, "id": n + 1} for n, w in enumerate(chosen)]
+
+
+def choose_window(response, windows):
+    """Do not trust any AI-generated timestamps or payoff index."""
+    if not isinstance(response, dict) or response.get("skip"):
+        return None
+    try:
+        selected_id = int(response["candidate_id"])
+    except (KeyError, TypeError, ValueError):
+        print("  AI response has no valid candidate_id")
+        return None
+    window = next((w for w in windows if w["id"] == selected_id), None)
+    if window is None:
+        print(f"  AI selected nonexistent candidate ID {selected_id}")
+        return None
+    hook = response.get("hook", "")
+    if not isinstance(hook, str):
+        hook = ""
+    hook = re.sub(r"\s+", " ", hook).strip().strip('"“”')
+    if not (12 <= len(hook) <= 85):
+        print(f"  Validation: candidate {selected_id} hook length {len(hook)} invalid")
+        return None
+    return {"start": window["start"], "end": window["end"], "hook": hook,
+            "payoff_cue": window["payoff_cue"], "payoff": window["payoff"],
+            "reason": str(response.get("reason", ""))[:220]}
+
+
+def propose(cues, duration, title):
+    sample = " ".join(x["text"] for x in cues[:150])
+    letters = [c for c in sample if c.isalpha()]
+    if len(cues) < 8 or not letters or sum(c.isascii() for c in letters) / len(letters) < .92:
         print("  No suitable English subtitle track")
         return None
-    key=os.getenv("OPENAI_API_KEY","").strip()
+    key = os.getenv("OPENAI_API_KEY", "").strip()
     if not key:
-        print("  OPENAI_API_KEY is missing; use manual timestamps or configure API key")
+        print("  OPENAI_API_KEY is missing; configure it before AI selection")
         return None
-    transcript="\n".join(f"{i}|{x['start']:.2f}-{x['end']:.2f}|{x['text']}" for i,x in enumerate(cues))
-    if len(transcript)>90000:
-        print("  Transcript too large for reliable automatic selection")
+    windows = build_windows(cues, duration)
+    print(f"  Built {len(windows)} timestamp-validated clip candidates")
+    if not windows:
+        print("  No self-contained 12–30s caption segments; skipping")
         return None
-    instruction=("Select ONE compelling self-contained GTA video moment of 12-30 seconds, "
-       "using ONLY timestamped captions, not imagined video frames. Require setup, change and payoff. "
-       "Keep entire payoff sentence, with 0.3 seconds breathing room, no mid-sentence cuts. "
-       "Reject ad reads, empty hype, spoilers, unsupported confirmed-feature claims. "
-       "Speculative content must use speculative hook language. If no suitable moment, return "
-       "{\"skip\":true}. Otherwise respond with JSON fields start, end, hook, payoff_cue "
-       "(zero-based index of the transcript cue with the payoff), reason. "
-       "IMPORTANT: The selected final payoff cue must end in a full stop, "
-       "question mark or exclamation mark, and end must equal that cue's "
-       "end timestamp plus approximately 0.3 seconds. Avoid cut-off sentences. "
-       f"Title: {title}; duration: {duration}\nTranscript:\n{transcript}")
+
+    choices = "\n".join(
+        f"ID {w['id']} | {w['start']}-{w['end']} | {w['excerpt']}"
+        for w in windows
+    )
+    instruction = (
+        "You are editing a GTA gaming YouTube Short. Choose ONE of the numbered "
+        "12-30 second transcript passages below with a strong hook, meaningful "
+        "setup, turn and payoff. You CANNOT change timestamps or invent a new clip. "
+        "Prefer a satisfying reveal or surprising NPC/player consequence. "
+        "Don't select ads, sponsor reads, waffle, unrelated digressions or "
+        "unsupported GTA 6 feature claims. Speculation must stay speculative. "
+        'Return JSON {"candidate_id": 7, "hook": "18-65 character viral hook", '
+        '"reason": "brief rationale"} or {"skip": true}. '
+        "Use an ID actually in the list. Never include start/end in your response. "
+        f"Video title: {title}\nCandidates:\n{choices}"
+    )
     try:
-        r=requests.post("https://api.openai.com/v1/chat/completions",timeout=100,
-            headers={"Authorization":"Bearer "+key},
-            json={"model":os.getenv("BDIL_AI_MODEL","gpt-4o-mini"),
-                  "response_format":{"type":"json_object"},
-                  "messages":[{"role":"system","content":"Return only valid JSON. Ground every claim in the transcript."},
-                              {"role":"user","content":instruction}]})
-        r.raise_for_status()
-        result=json.loads(r.json()["choices"][0]["message"]["content"])
-        result = rewrite_invalid_hook(result, cues, title, key)
-        chosen=validate(result,cues,duration)
-        if not chosen:
-            print("  AI candidate failed payoff/duration checks; skipping")
-        return chosen
-    except (ValueError,KeyError,requests.RequestException) as exc:
-        print("  AI request failed:",str(exc)[:180])
-        return None
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions", timeout=100,
+            headers={"Authorization": "Bearer " + key},
+            json={
+                "model": os.getenv("BDIL_AI_MODEL", "gpt-4o-mini"),
+                "response_format": {"type": "json_object"},
+                "messages": [
+                    {"role": "system", "content": "Return valid JSON. Choose one listed candidate ID only."},
+                    {"role": "user", "content": instruction},
+                ],
+            },
+        )
+        response.raise_for_status()
+        answer = json.loads(response.json()["choices"][0]["message"]["content"])
+        selected = choose_window(answer, windows)
+        if selected:
+            return selected
+        if isinstance(answer, dict) and answer.get("skip"):
+            print("  AI found no strong candidate; skipping")
+        else:
+            print("  AI selection did not meet fixed candidate/hook requirements; skipping")
+    except (ValueError, KeyError, requests.RequestException) as exc:
+        print("  AI request failed:", str(exc)[:180])
+    return None
 
 def select(url,info,work):
     path=fetch_vtt(url,work)
