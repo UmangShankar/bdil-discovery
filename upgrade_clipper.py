@@ -76,12 +76,15 @@ def upgrade(folder):
         try:''')
     source = replace_once(source,
         '''            r["status"] = "clipped"
-            r["clip_file"]''',
+            r["clip_file"] = "; ".join(x["file"] for x in res)
+            r["youtube"] = "; ".join(x.get("youtube", "") for x in res).strip("; ")''',
         '''            if not res:
-                print(f"  SKIP (no strong moment): {r.get('title')}")
-                continue
-            r["status"] = "uploaded" if do_upload else "clipped"
-            r["clip_file"]''')
+                r["status"] = "skipped"
+                r["notes"] = (r.get("notes", "") + " | no strong moment").strip(" |")
+            else:
+                r["status"] = "uploaded" if do_upload else "clipped"
+                r["clip_file"] = "; ".join(x["file"] for x in res)
+                r["youtube"] = "; ".join(x.get("youtube", "") for x in res).strip("; ")''')
     source = replace_once(source,
         '    elif a.url or a.file:\n        make_clip(',
         '    elif a.url or a.file:\n        if a.upload:\n            sys.exit("Direct upload disabled: use a rights-approved backlog row.")\n        make_clip(')
