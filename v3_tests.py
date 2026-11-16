@@ -1,6 +1,7 @@
 """V3 zero-network regression tests for transcript parsing and hook boundaries."""
 import unittest
-from smart_hooks import parse_vtt, validate
+from smart_hooks import parse_vtt, validate, rewrite_invalid_hook
+from unittest.mock import patch, Mock
 
 SAMPLE = """WEBVTT
 
@@ -83,6 +84,36 @@ amazing<00:00:04.200><c> today.</c>
         self.assertIsNone(validate({"start": 570, "end": 577,
             "hook": "NPC traffic could finally get smarter!",
             "payoff_cue": 1}, cues, 674))
+
+    def test_hook_retry_preserves_timestamps(self):
+        cues = [{"start": 100, "end": 105, "text": "Setup."},
+                {"start": 105, "end": 119, "text": "NPCs could call the police."}]
+        candidate = {"start": 100, "end": 119, "payoff_cue": 1, "hook": "Hi"}
+        response = Mock()
+        response.json.return_value = {"choices":[{"message":{"content":'{"hook":"GTA 6 NPCs could call the police?!"}'}}]}
+        with patch("smart_hooks.requests.post", return_value=response) as post:
+            result = rewrite_invalid_hook(candidate, cues, "GTA6", "dummy")
+        self.assertEqual(result["start"], 100)
+        self.assertEqual(result["end"], 119)
+        self.assertEqual(result["hook"], "GTA 6 NPCs could call the police?!")
+        self.assertEqual(post.call_count, 1)
+        self.assertIsNotNone(validate(result, cues, 130))
+
+    def test_valid_hook_does_not_call_api(self):
+        candidate = {"start": 100, "end": 119, "hook": "GTA 6 NPCs call the police?"}
+        with patch("smart_hooks.requests.post") as post:
+            self.assertIs(rewrite_invalid_hook(candidate, [], "GTA6", "dummy"), candidate)
+        post.assert_not_called()
+
+    def test_bad_rewrite_is_rejected_without_loop(self):
+        cues = [{"start": 100, "end": 120, "text": "Police may arrive."}]
+        candidate = {"start": 100, "end": 120, "hook": ""}
+        response = Mock()
+        response.json.return_value = {"choices":[{"message":{"content":'{"hook":"No"}'}}]}
+        with patch("smart_hooks.requests.post", return_value=response) as post:
+            result = rewrite_invalid_hook(candidate, cues, "GTA6", "dummy")
+        self.assertEqual(result["hook"], "")
+        self.assertEqual(post.call_count, 1)
 
     def test_far_from_sentence_end_rejected(self):
         cues = [{"start": 1, "end": 3, "text": "Setup."},
