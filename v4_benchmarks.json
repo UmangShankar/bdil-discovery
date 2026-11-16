@@ -1,0 +1,245 @@
+{
+  "date": "2026-11-16",
+  "recommendation": "NO-GO for replacing V3",
+  "tests": {
+    "passed": 61,
+    "command": ".venv/bin/python -m unittest v4_tests v4_integration_tests v3_tests discover_tests p0_tests"
+  },
+  "benchmarks": [
+    {
+      "source_url": "https://www.youtube.com/watch?v=eDK9ko0HbBc",
+      "duration": 901.474,
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "start": 131.76,
+          "end": 144.43,
+          "duration": 12.67,
+          "hook": "In older GTA, people mostly came in a few sizes because bodies shared the same...",
+          "captions": "In older GTA, people mostly came in a few sizes because bodies shared the same animations. Nelson says GTA 6 adjusts each animation to the body on the fly so people can finally come in different heights and shapes without looking broken.",
+          "category": "mechanics_comparison",
+          "score": 79.78,
+          "overall_score": 79.78,
+          "hook_score": 72.0,
+          "story_score": 75.0,
+          "payoff_score": 85.0,
+          "audience_relevance_score": 90.0,
+          "retention_score": 77.33,
+          "audio_score": 100.0,
+          "video_score": 100.0,
+          "boundary_score": 80,
+          "originality_score": 50,
+          "diversity": "non-overlap plus transcript Jaccard <=0.65",
+          "payoff": "Nelson says GTA 6 adjusts each animation to the body on the fly so people can finally come in different heights and shapes without looking broken.",
+          "actual_payoff": "Nelson says GTA 6 adjusts each animation to the body on the fly so people can finally come in different heights and shapes without looking broken.",
+          "confidence": 0.75,
+          "verification_coverage": 1.0,
+          "verification": "transcript+audio+motion",
+          "review_required": true,
+          "semantic_verified": false,
+          "reason_for_selection": "Transcript contains a specific explanatory or comparative payoff",
+          "evidence": {
+            "hook": 0.72,
+            "story": 0.75,
+            "payoff": 0.85,
+            "audio": 1.0,
+            "motion": 1.0,
+            "boundaries": "complete transcript sentences; cue timing estimate",
+            "scene_transition_proposals": [
+              132.0,
+              137.0
+            ],
+            "originality": 0.5,
+            "originality_note": "unknown; neutral prior, no corpus comparison"
+          },
+          "limitations": [
+            "No local semantic vision model; footage/title agreement requires review",
+            "Caption timing is not frame/word aligned"
+          ],
+          "rank": 1
+        }
+      ],
+      "window_count": 1195,
+      "rejected_count": 1194,
+      "rejection_reasons": {
+        "speculation or trailer commentary": 421,
+        "no grounded event-resolution or educational insight": 1183,
+        "dependent opening": 275,
+        "opening lacks context": 120,
+        "educational opening lacks a specific curiosity gap": 6,
+        "promotion/outro": 26
+      },
+      "no_candidates_reason": null,
+      "stages": {
+        "audio": {
+          "status": "ok",
+          "samples": 1802,
+          "reason": "",
+          "backend": "ffmpeg",
+          "silent": false,
+          "interpretation": "RMS changes only; speech/music/events are not classified",
+          "processing_seconds": 3.049
+        },
+        "motion": {
+          "status": "ok",
+          "samples": 901,
+          "reason": "",
+          "backend": "ffmpeg",
+          "fallback_reason": "OpenCV unavailable or incomplete decoding",
+          "processing_seconds": 12.64
+        },
+        "scene": {
+          "status": "ok",
+          "samples": 901,
+          "reason": "",
+          "backend": "ffmpeg",
+          "fallback_reason": "OpenCV unavailable or incomplete decoding",
+          "processing_seconds": 12.64,
+          "method": "1fps grayscale cut proposals; precision +/-1s",
+          "cuts": 138
+        },
+        "transcript": {
+          "status": "ok",
+          "cues": 619
+        }
+      },
+      "processing_seconds": 16.022,
+      "api_cost_usd": 0
+    },
+    {
+      "source_url": "https://www.youtube.com/watch?v=iQy-GH_JXJ8",
+      "duration": 465.854,
+      "candidate_count": 0,
+      "candidates": [],
+      "window_count": 0,
+      "rejected_count": 0,
+      "rejection_reasons": {},
+      "no_candidates_reason": "no complete 12-30s multi-sentence windows",
+      "stages": {
+        "audio": {
+          "status": "ok",
+          "samples": 931,
+          "reason": "",
+          "backend": "ffmpeg",
+          "silent": false,
+          "interpretation": "RMS changes only; speech/music/events are not classified",
+          "processing_seconds": 1.203
+        },
+        "motion": {
+          "status": "ok",
+          "samples": 466,
+          "reason": "",
+          "backend": "ffmpeg",
+          "fallback_reason": "OpenCV unavailable or incomplete decoding",
+          "processing_seconds": 10.032
+        },
+        "scene": {
+          "status": "ok",
+          "samples": 466,
+          "reason": "",
+          "backend": "ffmpeg",
+          "fallback_reason": "OpenCV unavailable or incomplete decoding",
+          "processing_seconds": 10.032,
+          "method": "1fps grayscale cut proposals; precision +/-1s",
+          "cuts": 51
+        },
+        "transcript": {
+          "status": "ok",
+          "method": "faster-whisper local cached model",
+          "model": "small",
+          "cues": 1,
+          "dropped_segments": 2,
+          "language": "en",
+          "limitation": "ASR can hallucinate or mishear; compare audio during review"
+        }
+      },
+      "processing_seconds": 18.61,
+      "api_cost_usd": 0
+    }
+  ],
+  "baseline_false_positives": [
+    {
+      "start": 658.16,
+      "end": 678.0,
+      "score": 54.34,
+      "reason": "pandemic hit treated as action"
+    },
+    {
+      "start": 386.09,
+      "end": 406.28,
+      "score": 42.44,
+      "reason": "historical narration and unrelated ending"
+    }
+  ],
+  "original_source": {
+    "duration": 901.474,
+    "streams": [
+      {
+        "codec_type": "video",
+        "codec_name": "av1",
+        "width": 3840,
+        "height": 2160
+      },
+      {
+        "codec_type": "audio",
+        "codec_name": "opus"
+      }
+    ]
+  },
+  "original_source_full_scan": "Stopped for excessive processing time; complete timeline measured on same-duration 360p version",
+  "original_source_selected_preview": {
+    "duration": 12.683333,
+    "streams": [
+      {
+        "codec_type": "video",
+        "codec_name": "h264",
+        "width": 640,
+        "height": 360
+      },
+      {
+        "codec_type": "audio",
+        "codec_name": "aac"
+      }
+    ]
+  },
+  "cutter_render": {
+    "duration": 12.7,
+    "streams": [
+      {
+        "codec_type": "video",
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920
+      },
+      {
+        "codec_type": "audio",
+        "codec_name": "aac"
+      }
+    ]
+  },
+  "local_content_inspection": "Contact sheet and independent cached Whisper recover complete explanation; underlying attributed GTA 6 technology claim not independently fact checked",
+  "local_artifacts": [
+    "v4_test/previews-original/candidate-01.mp4",
+    "v4_test/cutter-captions.mp4",
+    "v4_test/contact-primary.jpg",
+    "v4_test/contact-second.jpg",
+    "v4_test/preview-asr-check.json"
+  ],
+  "sheets": {
+    "dry_run": true,
+    "write_count": 0,
+    "legacy_columns": "I:L",
+    "source_url_column": "H",
+    "status_column": "B",
+    "held_sources": 1,
+    "reason": "no qualifying candidates for to-cut source",
+    "production_writer": "not implemented; plan only"
+  },
+  "limitations": [
+    "Heuristic semantic scoring; no calibrated retention or originality measure",
+    "Only one positive educational example inspected; no positive real gameplay benchmark",
+    "Cue-derived timing and coarse scene proposals; no frame-level cut guarantee",
+    "Full 4K scan performance unresolved",
+    "Live Sheet writer not implemented or validated"
+  ]
+}

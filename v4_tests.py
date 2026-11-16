@@ -5,11 +5,11 @@ import v4_local
 
 def cues():
     result=[]
-    for i in range(80):
-        text="We are driving around the city and looking at all the other cars."
-        if i in (12, 35, 59):
-            text="Wait what just happened? That NPC crashed and exploded!"
-        result.append({"start":i*2.0,"end":i*2.0+1.9,"text":text})
+    for start in (0.,40.,80.):
+        for a,b,text in [(0,4,'Wait what just happened?'),
+                         (4,10,'That NPC drove straight into the police car while we watched.'),
+                         (10,17,'The car crashed and exploded, and the driver finally escaped!')]:
+            result.append({'start':start+a,'end':start+b,'text':text})
     return result
 
 class TestV4(unittest.TestCase):
@@ -27,12 +27,12 @@ class TestV4(unittest.TestCase):
             for b in picks[i+1:]:
                 self.assertLessEqual(max(0,min(a["end"],b["end"])-max(a["start"],b["start"])),2)
 
-    def test_optional_signal_is_not_zero_scored(self):
+    def test_missing_media_lowers_confidence(self):
         with patch.object(v4_local,"audio_activity",return_value=([],[])):
             with patch.object(v4_local,"motion_activity",return_value=([],[])):
                 picks=v4_local.rank(cues(),160,video="dummy.mp4")
         self.assertTrue(picks)
-        self.assertTrue(all(0 <= p["score"] <= 100 for p in picks))
+        self.assertTrue(all(0 <= p["score"] <= 100 and p["confidence"] < .6 and p["review_required"] for p in picks))
 
     def test_sponsor_penalty(self):
         base={"start":0,"end":20,"excerpt":"Wait! The NPC crashed into the car! That's insane!","payoff":"That's insane!"}
