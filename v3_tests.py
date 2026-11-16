@@ -1,6 +1,6 @@
 """V3 zero-network regression tests for transcript parsing and hook boundaries."""
 import unittest
-from smart_hooks import parse_vtt, validate, rewrite_invalid_hook
+from smart_hooks import parse_vtt, validate, rewrite_invalid_hook, build_windows, choose_window
 from unittest.mock import patch, Mock
 
 SAMPLE = """WEBVTT
@@ -114,6 +114,45 @@ amazing<00:00:04.200><c> today.</c>
             result = rewrite_invalid_hook(candidate, cues, "GTA6", "dummy")
         self.assertEqual(result["hook"], "")
         self.assertEqual(post.call_count, 1)
+
+    def test_fixed_windows_are_12_to_30_seconds(self):
+        cues = []
+        for n in range(12):
+            cues.append({
+                "start": n * 5.0, "end": n * 5.0 + 4.8,
+                "text": "The NPC is doing something different and surprising right here."
+            })
+        windows = build_windows(cues, 65)
+        self.assertTrue(windows)
+        for window in windows:
+            self.assertGreaterEqual(window["end"] - window["start"], 12)
+            self.assertLessEqual(window["end"] - window["start"], 30)
+            self.assertIn(window["payoff"], window["excerpt"])
+            self.assertTrue(window["excerpt"].endswith("."))
+
+    def test_ai_cannot_invent_timestamp(self):
+        cues = []
+        for n in range(7):
+            cues.append({
+                "start": n * 5.0, "end": n * 5.0 + 4.8,
+                "text": "Something unexpected happened to the characters in GTA."
+            })
+        windows = build_windows(cues, 40)
+        self.assertTrue(windows)
+        answer = {"candidate_id": windows[0]["id"],
+                  "start": 99999, "end": 100000,
+                  "hook": "GTA NPCs react in a shocking way!",
+                  "reason": "Full reaction"}
+        chosen = choose_window(answer, windows)
+        self.assertIsNotNone(chosen)
+        self.assertEqual(chosen["start"], windows[0]["start"])
+        self.assertEqual(chosen["end"], windows[0]["end"])
+
+    def test_ai_unknown_candidate_is_rejected(self):
+        self.assertIsNone(choose_window({
+            "candidate_id": 9999, "hook": "GTA NPCs have a surprising reaction!"
+        }, [{"id": 1, "start": 12, "end": 30,
+             "payoff_cue": 5, "payoff": "They escaped."}]))
 
     def test_far_from_sentence_end_rejected(self):
         cues = [{"start": 1, "end": 3, "text": "Setup."},
