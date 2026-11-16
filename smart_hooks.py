@@ -229,7 +229,7 @@ def build_windows(cues, duration, limit=72):
             if span < 12:
                 continue
             if span > 30:
-                break
+                continue
             if i:
                 previous = cues[i - 1]
                 clean_start = (re.search(r"[.!?][\"']?$", previous["text"])
