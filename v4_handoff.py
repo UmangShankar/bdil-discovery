@@ -98,13 +98,31 @@ def main():
     ap.add_argument('--cutter',type=Path,default=Path('../clipper/clip.py'))
     ap.add_argument('--caption-model',help='Optional locally cached Whisper model for cutter karaoke captions')
     ap.add_argument('--render',type=Path,required=True)
+    ap.add_argument('--thumbnail',type=Path,required=True,help='Required 1080x1920 Shorts cover')
+    ap.add_argument('--short-title',required=True,help='Readable title for the dated delivery folder')
+    ap.add_argument('--package-root',type=Path,default=Path(__file__).resolve().parent/'packages')
+    ap.add_argument('--package-date',help='ISO date; defaults to today in Europe/London')
+    ap.add_argument('--thumbnail-prompt',type=Path)
     a = ap.parse_args()
     report = json.loads(a.json.read_text())
     c = next((c for c in report['candidates'] if c['rank']==a.rank),None)
     if c is None:
         ap.error('rank absent')
     try:
-        print(json.dumps(render_with_cutter(a.video,c,a.cutter,a.render,a.caption_model)))
+        from v4_package import build_package,thumbnail_size
+        thumbnail_size(a.thumbnail)
+        review=c.get('payoff_review',{})
+        if not isinstance(review,dict) or not all(review.get(k) for k in ('setup','resolution','why_it_resolves','reviewed_by')):
+            raise ValueError('reviewed candidate requires a complete payoff_review before rendering')
+        result=render_with_cutter(a.video,c,a.cutter,a.render,a.caption_model)
+        source=c.get('source') or {'url':report.get('source_url'),'creator':report.get('creator')}
+        meta={**c,**result,'title':c.get('title') or c['hook'],
+              'description':c.get('description') or c['captions']+'\n\nSource: '+str(report.get('source_url') or a.video),
+              'tags':c.get('tags') or ['GTA','Gaming','Shorts'],'categoryId':c.get('categoryId','20'),
+              'source':source,'publication_status':'local review only'}
+        package=build_package(a.render,a.thumbnail,meta,root=a.package_root,short_title=a.short_title,
+                              day=a.package_date,thumbnail_prompt=a.thumbnail_prompt)
+        print(json.dumps({**result,'package':str(package),'thumbnail_required':True}))
     except (ValueError,OSError,subprocess.SubprocessError) as exc:
         ap.exit(2,str(exc)+'\n')
 

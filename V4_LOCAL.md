@@ -60,7 +60,7 @@ production job. The delivered local render review is engineering inspection of
 sampled frames and independent ASR, not a claim of independent fact-checking.
 
 ```bash
-.venv/bin/python v4_handoff.py v4_test/reviewed-for-local-render.json --video v4_test/primary_360.mp4 --cutter ../clipper/clip.py --caption-model small --render v4_test/reviewed-short.mp4
+.venv/bin/python v4_handoff.py reviewed-candidates.json --video source.mp4 --cutter ../clipper/clip.py --caption-model small --render v4_test/staging/render.mp4 --thumbnail thumbnail.jpg --short-title 'My GTA Clip'
 ```
 
 The adapter calls the existing cutter's cut/ASS/render functions, retains exact
@@ -68,6 +68,33 @@ selected times, and never calls uploading or backlog mutation. Optional cached
 Whisper adds word-timed karaoke through the existing caption renderer. Without
 that flag it renders the hook and retains transcript text in JSON. Rendering is
 validated before an atomic final-file creation; existing output is never replaced.
+The reviewed report must include a complete `payoff_review`. The CLI requires a
+portrait thumbnail and short title, then creates a dated delivery package after
+the intermediate render passes its ending checks.
+
+**Delivery packages (required):** every finished clip is delivered in
+`packages/short-video-title_YYYY-MM-DD/`. The date is the current Europe/London
+date; `--date` can specify an explicit client date. Another save with the same
+title/date creates `_v2`, `_v3`, etc. Earlier packages are never overwritten.
+
+Every package contains a finished `video.mp4`, a **1080x1920 (9:16) thumbnail**,
+`UPLOAD-DETAILS.txt` with title/description/tags/keywords and prepared settings,
+portable `metadata.json`, `README.txt`, `payoff-review.json`, `ending-audit.json`,
+and a `manifest.json` with file hashes. Caption ASS and thumbnail prompt files are
+included when available. A missing/landscape thumbnail, missing payoff review,
+failed ending audit, or mismatched video prevents a completed package. Generate
+and review the thumbnail as part of every clip task, not as a later optional job.
+
+To package an already-rendered clip:
+
+```bash
+.venv/bin/python v4_package.py --video staging/video.mp4 --thumbnail staging/thumbnail.jpg --metadata staging/metadata.json --short-title 'My GTA Clip'
+```
+
+Optional flags: `--root`, `--date YYYY-MM-DD`, `--captions`, `--thumbnail-prompt`.
+`build_package()` and `validate_package()` provide the same contract to editorial
+scripts. Working files can remain in `v4_test/`; the readable dated package is
+the final deliverable. Packaging does not upload or change publication settings.
 
 **Ending/payoff gate (2026-11-17):** trailing connectors and dependent phrases
 are rejected even if automatic captions add a full stop (for example, `but.`).
@@ -123,5 +150,5 @@ re-read headers, IDs, status, values, formulas, validation and existing child ID
 immediately before writing, using RAW values to avoid formula interpretation.
 
 ```bash
-.venv/bin/python -m unittest v4_quality_tests v4_tests v4_integration_tests v3_tests discover_tests p0_tests
+.venv/bin/python -m unittest v4_package_tests v4_quality_tests v4_tests v4_integration_tests v3_tests discover_tests p0_tests
 ```

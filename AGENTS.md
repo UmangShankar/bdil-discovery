@@ -28,6 +28,28 @@ clips. Apply these requirements to automatic candidates AND editorial jobs in
   applicable with that reason; never invent a spoken transcript or an ASR pass.
 - Do not alter existing published videos unless the user explicitly requests it.
 
+## Delivery package standard
+
+- Every finished clip gets its own delivery folder in `discovery/packages/`,
+  named `short-video-title_YYYY-MM-DD`. Use the current user-facing date in
+  Europe/London, not the video's source publication date or a YouTube ID.
+- Every new save/revision creates a new folder. On a same-title/same-date
+  collision use `_v2`, `_v3`, etc. Never overwrite or silently reuse a package.
+- A 9:16 thumbnail is mandatory for EVERY finished package. Generate/review it
+  as part of the clip task; save the upload-ready cover at 1080x1920. A landscape
+  image alone does not satisfy this requirement. If the cover is not ready, the
+  delivery package is incomplete; do not leave it as an optional follow-up.
+- Final package contents: `video.mp4`, `thumbnail.jpg` (or PNG), `metadata.json`,
+  `UPLOAD-DETAILS.txt`, `README.txt`, `payoff-review.json`, `ending-audit.json`,
+  and `manifest.json`. Include caption ASS and image-generation prompt when
+  available. Metadata and the manifest use package-relative asset paths.
+- Use `v4_package.build_package()` or its CLI so missing thumbnails, wrong
+  dimensions, incomplete payoff reviews and failed ending audits block delivery.
+  Custom editorial scripts must also finish with this packaging step.
+- Give the user the readable dated package folder and links to its video,
+  portrait thumbnail and upload details. Working files may stay in `v4_test/`;
+  do not present an ID-named working folder as the final delivery package.
+
 Keep OAuth files and production rendering/upload configuration unchanged. Use
 only authorized credentials; never print or commit credential contents. Preserve
 unrelated work, including pre-existing working-tree changes.
