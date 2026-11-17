@@ -1,15 +1,15 @@
-# Bad Day In Leonida: discovery digest, Mon 16 Nov 2026 15:36 UTC
+# Bad Day In Leonida: discovery digest, Tue 17 Nov 2026 01:51 UTC
 
-**Backlog: LOW** | 5 ready (1 tier A) = 1.7 days of cover (target 9) | 0 new this run
+**Backlog: LOW** | 5 ready (0 tier A) = 1.7 days of cover (target 9) | 0 new this run
 
-Sources this run: youtube 21, twitch 1, reddit 0
+Sources this run: youtube 20, twitch 2, reddit 0
 
 | # | Status | Tier | Score | Source | Title | Creator | Views/h | Flags |
 |---|---|---|---|---|---|---|---|---|
 | 1 | to-cut | B | 55 | youtube | [GTA 6 Vice City Free Roam & Police Chase / Next-Gen Gameplay](https://www.youtube.com/watch?v=iQy-GH_JXJ8) | Vi | 84 |  |
-| 2 | ready | A | 66 | youtube | [Couple Leads Police on GTA 6 Style Chase](https://www.youtube.com/watch?v=G26tVAKdukQ) | Patrol Cam Live | 590 |  |
-| 3 | ready | B | 51 | youtube | [GTA 6 Releases in 3 Days - I'm Betting on $GLITCH](https://www.youtube.com/watch?v=I5VsDClhxyI) | Crypto Archie | 192 |  |
-| 4 | ready | B | 49 | youtube | [🚨Urgente, GTA 6 VAZOU DE NOVO e NOVIDADES GAMEPLAY! Sistema de Empatia](https://www.youtube.com/watch?v=uStv9mvrk-I) | NobertoGamer | 1178 |  |
+| 2 | ready | B | 63 | youtube | [Couple Leads Police on GTA 6 Style Chase](https://www.youtube.com/watch?v=G26tVAKdukQ) | Patrol Cam Live | 430 |  |
+| 3 | ready | B | 49 | youtube | [🚨Urgente, GTA 6 VAZOU DE NOVO e NOVIDADES GAMEPLAY! Sistema de Empatia](https://www.youtube.com/watch?v=uStv9mvrk-I) | NobertoGamer | 1178 |  |
+| 4 | ready | B | 47 | youtube | [GTA 6 Releases in 3 Days - I'm Betting on $GLITCH](https://www.youtube.com/watch?v=I5VsDClhxyI) | Crypto Archie | 94 |  |
 | 5 | ready | B | 45 | youtube | [GTA 6 - O DETALHAMENTO BRUTAL DOS NPCS](https://www.youtube.com/watch?v=Wu4v0cZv9UU) | Gigaton Games | 3487 |  |
 
 Only rights=allowlisted candidates should be sent to the local cutter. Rights=check or hold require creator permission before publishing.
