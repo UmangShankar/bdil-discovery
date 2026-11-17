@@ -81,6 +81,11 @@ checks the real final sentence/word, and holds exports whose last word touches
 the cut. Missing audit evidence fails closed. This final speech audit needs a
 locally available Whisper model even when karaoke captions are disabled. Estimated
 ASR timing does not replace checking the audible ending and the actual resolution.
+If ASR omits punctuation, the export can pass only when its actual final words
+match the reviewed complete payoff's lexical suffix and have sufficient clearance
+before the cut. An extra sentence after that payoff, a different ending, or a
+dangling connector still holds the export. Punctuation is never added merely to
+make a failed ending pass.
 
 All future editorial jobs must also follow `AGENTS.md`: record an explicit
 `payoff_review` (setup, resolution, why it resolves the opening, reviewer), check

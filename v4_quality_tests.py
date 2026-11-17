@@ -88,6 +88,27 @@ class EndingQualityTests(unittest.TestCase):
         self.assertTrue(result['passed'])
         self.assertEqual(result['tail_clearance'],.3)
 
+    def test_asr_punctuation_omission_needs_reviewed_matching_ending(self):
+        w=[{'start':0.,'end':.4,'word':'He'},
+           {'start':.4,'end':1.,'word':'escaped'}]
+        self.assertTrue(audit_words(w,2.,payoff='He escaped.')['passed'])
+        self.assertFalse(audit_words(w,2.)['passed'])
+        self.assertFalse(audit_words(w,2.,payoff='The police arrested him.')['passed'])
+
+    def test_clean_extra_sentence_after_payoff_is_held(self):
+        w=[{'start':0.,'end':.5,'word':'Escaped.'},
+           {'start':.6,'end':1.,'word':'Subscribe.'}]
+        self.assertFalse(audit_words(w,2.,payoff='The driver escaped.')['passed'])
+
+    def test_reviewed_suffix_tolerates_joined_ray_cast_tokenization(self):
+        w=[{'start':0.,'end':.1,'word':'Programmers'},
+           {'start':.1,'end':.2,'word':'call'},
+           {'start':.2,'end':.3,'word':'it'},
+           {'start':.3,'end':.4,'word':'a'},
+           {'start':.4,'end':.5,'word':'ray'},
+           {'start':.5,'end':.7,'word':'cast'}]
+        self.assertTrue(audit_words(w,1.,payoff='Programmers call it a raycast.')['passed'])
+
     def test_no_speech_and_invalid_word_times_do_not_pass(self):
         for words in ([], [{'start':0,'end':99,'word':'Escaped.'}]):
             self.assertFalse(audit_words(words,2.)['passed'])
