@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 .env
+.venv/
+v4_test/
+candidates.json

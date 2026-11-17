@@ -1,0 +1,5 @@
+-r requirements.txt
+numpy>=1.24
+# Optional: opencv-python (FFmpeg fallback works without it)
+# Optional: faster-whisper (only locally cached models are loaded)
+# Optional: yt-dlp (source download; discovery CLI operates on local media)
