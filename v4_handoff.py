@@ -15,6 +15,12 @@ def validate(candidate, duration, reviewed=False):
         raise ValueError('invalid/out-of-media candidate timestamps')
     if not all(isinstance(candidate.get(k),str) and candidate[k].strip() for k in ('hook','captions')):
         raise ValueError('hook and captions required')
+    from v4_quality import ending_reasons, payoff_reasons
+    ending_errors = ending_reasons(candidate['captions'])
+    if reviewed:
+        ending_errors += payoff_reasons(candidate.get('actual_payoff') or candidate.get('payoff') or candidate['captions'])
+    if ending_errors:
+        raise ValueError('clip ending rejected: ' + '; '.join(dict.fromkeys(ending_errors)))
     if reviewed and (candidate.get('review_required') is not False
                      or candidate.get('semantic_verified') is not True
                      or not candidate.get('reviewed_by')
@@ -71,9 +77,16 @@ def render_with_cutter(video, candidate, cutter, output, caption_model=None):
         module.render(raw,ass,rendered)
         if abs(probe(rendered)['duration']-(candidate['end']-candidate['start'])) > .25:
             raise ValueError('cutter changed selected duration')
+        from v4_quality import audit_export
+        ending_audit = audit_export(rendered,
+                                   candidate.get('actual_payoff') or candidate.get('payoff') or candidate['captions'],
+                                   model=caption_model or 'small')
+        if not ending_audit['passed']:
+            raise ValueError('final export ending rejected: ' + '; '.join(ending_audit['reasons']))
         import os
         os.link(rendered,output)  # atomic create; cannot clobber an existing output
     return {'file':str(output),'duration':probe(output)['duration'], 'upload':False,
+            'ending_audit':ending_audit,
             'captions':'local Whisper word timing' if caption_model else 'hook only; transcript retained in candidate JSON'}
 
 

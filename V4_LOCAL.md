@@ -69,6 +69,27 @@ Whisper adds word-timed karaoke through the existing caption renderer. Without
 that flag it renders the hook and retains transcript text in JSON. Rendering is
 validated before an atomic final-file creation; existing output is never replaced.
 
+**Ending/payoff gate (2026-11-17):** trailing connectors and dependent phrases
+are rejected even if automatic captions add a full stop (for example, `but.`).
+Unanswered final questions, promised-later answers, ellipses and generic hype
+alone do not count as a payoff. Window padding stops before the next speech cue,
+including an incomplete following cue that never became a full sentence.
+
+The reviewed speech renderer now runs `v4_quality.audit_export()` on the actual
+finished MP4 before creating the final output. It uses cached local Whisper,
+checks the real final sentence/word, and holds exports whose last word touches
+the cut. Missing audit evidence fails closed. This final speech audit needs a
+locally available Whisper model even when karaoke captions are disabled. Estimated
+ASR timing does not replace checking the audible ending and the actual resolution.
+
+All future editorial jobs must also follow `AGENTS.md`: record an explicit
+`payoff_review` (setup, resolution, why it resolves the opening, reviewer), check
+every spoken edit boundary, and save a passing final `ending_audit` before upload.
+Non-speech clips need a documented visual payoff review instead of an invented
+speech-audit pass. Extend/reselect a complete thought; never hard-truncate to a
+duration target, hide a word only in captions, or use silence to mask a fragment.
+Existing published clips are not modified by these checks.
+
 The Sheet planner is **dry-run only**, requires no credentials and performs no
 network requests:
 
@@ -88,5 +109,5 @@ re-read headers, IDs, status, values, formulas, validation and existing child ID
 immediately before writing, using RAW values to avoid formula interpretation.
 
 ```bash
-.venv/bin/python -m unittest v4_tests v4_integration_tests v3_tests discover_tests p0_tests
+.venv/bin/python -m unittest v4_quality_tests v4_tests v4_integration_tests v3_tests discover_tests p0_tests
 ```

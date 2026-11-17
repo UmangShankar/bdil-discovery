@@ -4,6 +4,7 @@ Requires existing smart_hooks.py. Optional OpenCV adds motion; ffmpeg adds
 audio energy. When only a VTT is supplied, reports transcript-only evidence.
 """
 import argparse
+from bisect import bisect_left
 import json
 import math
 import re
@@ -12,6 +13,7 @@ import subprocess
 from pathlib import Path
 
 from smart_hooks import build_windows, parse_vtt
+from v4_quality import payoff_reasons
 
 EVENTS = {
     "crash": 3, "crashed": 3, "explosion": 3, "explode": 3,
@@ -126,7 +128,7 @@ def sentence_windows(cues, duration):
     VTT mid-cue splits are estimates from the existing parser, not word alignment.
     No duration-based shortlist is applied before content scoring.
     """
-    sentences, pending = [], []
+    sentences, pending, speech_starts = [], [], []
     previous_end = -1.
     for c in cues:
         try:
@@ -141,6 +143,7 @@ def sentence_windows(cues, duration):
         previous_end = b
         if not text:
             continue
+        speech_starts.append(a)
         pending.append({'start':a, 'end':b, 'text':text})
         if re.search(r'[.!?]["\']?$', text):
             sentences.append({'start':pending[0]['start'], 'end':b,
@@ -150,7 +153,13 @@ def sentence_windows(cues, duration):
     for i, first in enumerate(sentences):
         for j in range(i, len(sentences)):
             last = sentences[j]
-            end = min(duration, last['end']+.25)
+            # Never pad across the next sentence: that can leak a final
+            # "but/and" into an otherwise complete exported clip.
+            # Include even an incomplete following cue (e.g. a final "but")
+            # that never became a full sentence in this transcript.
+            next_index = bisect_left(speech_starts, last['end']-.001)
+            next_start = speech_starts[next_index] if next_index < len(speech_starts) else duration
+            end = min(duration, last['end'] + min(.25, max(0., next_start-last['end']-.04)))
             if end-first['start'] > 30:
                 break
             if end-first['start'] < 12:
@@ -193,6 +202,7 @@ def discover(cues, duration, video=None, limit=5, media=None):
     for w in sentence_windows(cues, duration):
         text, opening, ending = w['excerpt'], w['opening'], w['payoff']
         reasons = []
+        reasons.extend(payoff_reasons(ending))
         reaction = bool(REACTION.search(opening))
         occurrence = bool(DIRECT_EVENT.search(text)) and not (HISTORICAL.search(text) or HISTORICAL_CONTEXT.search(text))
         insight = bool(INSIGHT.search(ending)) and bool(GAME.search(text))
@@ -234,6 +244,8 @@ def discover(cues, duration, video=None, limit=5, media=None):
             'boundary_score':80,'originality_score':50,
             'diversity':'non-overlap plus transcript Jaccard <=0.65',
             'payoff':ending,'actual_payoff':ending,
+            'ending_check':{'passed':True,'method':'transcript complete-thought gate',
+                            'export_audio_verified':False},
             'confidence':round(.4+.35*coverage,3),'verification_coverage':coverage,
             'verification': ('transcript-only' if not any(stages[k]['status']=='ok' for k in ('audio','motion')) else 'transcript') + ('+audio' if stages['audio']['status']=='ok' else '') + ('+motion' if stages['motion']['status']=='ok' else ''),
             'review_required':True,'semantic_verified':False,
