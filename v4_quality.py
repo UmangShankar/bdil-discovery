@@ -5,6 +5,9 @@ The final export still needs a documented review of its actual resolution.
 """
 import math
 import re
+import subprocess
+import tempfile
+from pathlib import Path
 
 
 TRAILING_WORDS = {
@@ -126,7 +129,35 @@ def audit_export(video, payoff=None, model='small'):
     from v4_transcript import words
     try:
         duration = probe(video)['duration']
-        return audit_words(words(video, model), duration, payoff)
-    except (ImportError, OSError, RuntimeError, ValueError) as exc:
+        result = audit_words(words(video, model), duration, payoff)
+        # Speech-over-music may be wrongly discarded as "no speech" for an
+        # entire Whisper segment. If recognition stops far before the cut,
+        # inspect the actual ending separately rather than approving stale
+        # earlier speech or weakening the payoff/cut checks.
+        if payoff is not None and duration > 20 and duration-result.get('last_word_end',0) > 8:
+            window = min(16.,duration)
+            offset = duration-window
+            with tempfile.TemporaryDirectory(prefix='v4-ending-') as work:
+                tail = Path(work)/'ending.wav'
+                subprocess.run(['ffmpeg','-nostdin','-v','error','-ss',str(offset),'-i',str(video),
+                                '-t',str(window),'-vn','-ac','1','-ar','16000',str(tail)],
+                               capture_output=True,check=True,timeout=60)
+                tail_words = words(tail,model,vad_filter=False,beam_size=5,
+                                   no_speech_threshold=None,include_probability=True)
+            shifted = [{**w,'start':float(w['start'])+offset,'end':float(w['end'])+offset}
+                       for w in tail_words]
+            focused = audit_words(shifted,duration,payoff)
+            terminal_probability = min((w.get('probability',0.) for w in tail_words[-4:]),default=0.)
+            if terminal_probability < .75:
+                focused['passed'] = False
+                focused['reasons'].append('focused ending transcription has low-confidence terminal words')
+            focused.update(audited_window_start=offset,audited_window_end=duration,
+                           terminal_word_probability_min=round(terminal_probability,3),
+                           initial_audit={'last_word_end':result.get('last_word_end'),
+                                          'passed':result['passed'],'reasons':result['reasons']},
+                           method='local ASR word timing; independently decoded final audio window')
+            return focused
+        return result
+    except (ImportError, OSError, RuntimeError, ValueError, subprocess.SubprocessError) as exc:
         return {'passed': False, 'reasons': ['export ending audit unavailable: ' + type(exc).__name__],
                 'method': 'local ASR word timing'}

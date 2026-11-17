@@ -87,6 +87,15 @@ before the cut. An extra sentence after that payoff, a different ending, or a
 dangling connector still holds the export. Punctuation is never added merely to
 make a failed ending pass.
 
+Longer speech over music can be wrongly discarded as "no speech" for an entire
+ASR segment. If recognition stops over eight seconds before the end of a clip
+longer than 20 seconds, the ending audit independently decodes and transcribes
+the final 16 seconds. This focused pass disables voice-activity rejection, uses
+no target-text prompt, and requires confident terminal words, a matching reviewed
+payoff and clean timing clearance. It can reject an earlier apparent pass if the
+actual tail is incomplete. The report records the audited window and the initial
+result; it does not claim that this focused pass verifies the entire transcript.
+
 All future editorial jobs must also follow `AGENTS.md`: record an explicit
 `payoff_review` (setup, resolution, why it resolves the opening, reviewer), check
 every spoken edit boundary, and save a passing final `ending_audit` before upload.

@@ -20,11 +20,15 @@ def transcribe(video, model='small'):
                   'limitation':'ASR can hallucinate or mishear; compare audio during review'}
 
 
-def words(video, model='small'):
+def words(video, model='small', *, vad_filter=True, beam_size=1,
+          no_speech_threshold=.6, include_probability=False):
     from faster_whisper import WhisperModel
     engine = WhisperModel(str(model),device='cpu',compute_type='int8',cpu_threads=2,
                           local_files_only=True)
-    segments,_ = engine.transcribe(str(video),language='en',vad_filter=True,
-                                   word_timestamps=True,condition_on_previous_text=False,beam_size=1)
-    return [{'start':w.start,'end':w.end,'word':w.word.strip()}
-            for s in segments if s.no_speech_prob < .6 for w in (s.words or []) if w.word.strip()]
+    segments,_ = engine.transcribe(str(video),language='en',vad_filter=vad_filter,
+                                   word_timestamps=True,condition_on_previous_text=False,
+                                   beam_size=beam_size,no_speech_threshold=no_speech_threshold)
+    return [{'start':w.start,'end':w.end,'word':w.word.strip(),
+             **({'probability':float(w.probability)} if include_probability else {})}
+            for s in segments if no_speech_threshold is None or s.no_speech_prob < no_speech_threshold
+            for w in (s.words or []) if w.word.strip()]

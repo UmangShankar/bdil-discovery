@@ -139,6 +139,51 @@ class EndingQualityTests(unittest.TestCase):
             self.assertFalse(out.exists())
             audit.assert_called_once()
 
+    def test_music_related_missing_tail_is_independently_checked(self):
+        first=[{'start':0.,'end':28.,'word':'families,'}]
+        tail=[{'start':12.,'end':12.2,'word':'my','probability':.99},
+              {'start':12.2,'end':12.6,'word':'heart,','probability':.99},
+              {'start':13.,'end':13.4,'word':'thank','probability':.95},
+              {'start':13.4,'end':14.,'word':'you.','probability':.99}]
+        with patch('v4_media.probe',return_value={'duration':52.}), \
+             patch('v4_transcript.words',side_effect=[first,tail]) as asr, \
+             patch('v4_quality.subprocess.run') as decode:
+            r=audit_export('rendered.mp4',payoff='From the bottom of my heart, thank you.')
+        self.assertTrue(r['passed'])
+        self.assertEqual(r['last_word_end'],50.)
+        self.assertEqual(r['audited_window_start'],36.)
+        self.assertFalse(asr.call_args.kwargs['vad_filter'])
+        self.assertIsNone(asr.call_args.kwargs['no_speech_threshold'])
+        self.assertIn('rendered.mp4',decode.call_args.args[0])
+
+    def test_earlier_matching_payoff_cannot_hide_dangling_real_tail(self):
+        first=[{'start':0.,'end':10.,'word':'Escaped.'}]
+        tail=[{'start':14.,'end':15.,'word':'But.','probability':.99}]
+        with patch('v4_media.probe',return_value={'duration':52.}), \
+             patch('v4_transcript.words',side_effect=[first,tail]), \
+             patch('v4_quality.subprocess.run'):
+            r=audit_export('rendered.mp4',payoff='Escaped.')
+        self.assertFalse(r['passed'])
+        self.assertTrue(r['initial_audit']['passed'])
+
+    def test_focused_ending_rejects_low_confidence_words(self):
+        tail=[{'start':12.,'end':14.,'word':'Escaped.','probability':.3}]
+        with patch('v4_media.probe',return_value={'duration':52.}), \
+             patch('v4_transcript.words',side_effect=[[],tail]), \
+             patch('v4_quality.subprocess.run'):
+            r=audit_export('rendered.mp4',payoff='Escaped.')
+        self.assertFalse(r['passed'])
+        self.assertTrue(any('low-confidence' in reason for reason in r['reasons']))
+
+    def test_bad_word_at_cut_does_not_trigger_fallback(self):
+        with patch('v4_media.probe',return_value={'duration':52.}), \
+             patch('v4_transcript.words',return_value=[{'start':50.,'end':52.,'word':'But.'}]) as asr, \
+             patch('v4_quality.subprocess.run') as decode:
+            r=audit_export('rendered.mp4',payoff='Escaped.')
+        self.assertFalse(r['passed'])
+        asr.assert_called_once()
+        decode.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()
