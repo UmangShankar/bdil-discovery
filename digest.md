@@ -1,8 +1,8 @@
-# Bad Day In Leonida: discovery digest, Tue 17 Nov 2026 15:55 UTC
+# Bad Day In Leonida: discovery digest, Wed 18 Nov 2026 00:56 UTC
 
-**Backlog: LOW** | 6 ready (0 tier A) = 2.0 days of cover (target 9) | 2 new this run
+**Backlog: LOW** | 6 ready (0 tier A) = 2.0 days of cover (target 9) | 0 new this run
 
-Sources this run: youtube 21, twitch 8, reddit 0
+Sources this run: youtube 32, twitch 11, reddit 0
 
 | # | Status | Tier | Score | Source | Title | Creator | Views/h | Flags |
 |---|---|---|---|---|---|---|---|---|
@@ -11,7 +11,7 @@ Sources this run: youtube 21, twitch 8, reddit 0
 | 3 | ready | B | 58 | youtube | [GTA 6 NPCs - All 10 ENDINGS!](https://www.youtube.com/watch?v=3XmMdlnbHFQ) | GroovyDominoes52 | 805 |  |
 | 4 | ready | B | 49 | youtube | [🚨Urgente, GTA 6 VAZOU DE NOVO e NOVIDADES GAMEPLAY! Sistema de Empatia](https://www.youtube.com/watch?v=uStv9mvrk-I) | NobertoGamer | 1178 |  |
 | 5 | ready | B | 47 | youtube | [GTA 6 Releases in 3 Days - I'm Betting on $GLITCH](https://www.youtube.com/watch?v=I5VsDClhxyI) | Crypto Archie | 94 |  |
-| 6 | ready | B | 47 | youtube | [Inside the Physics Engine Behind GTA VI](https://www.youtube.com/watch?v=c6xzGZAFcpU) | Speclizer | 3237 |  |
+| 6 | ready | B | 46 | youtube | [Inside the Physics Engine Behind GTA VI](https://www.youtube.com/watch?v=c6xzGZAFcpU) | Speclizer | 2475 |  |
 
 Only rights=allowlisted candidates should be sent to the local cutter. Rights=check or hold require creator permission before publishing.
 
