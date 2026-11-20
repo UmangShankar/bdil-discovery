@@ -1,8 +1,8 @@
-# Bad Day In Leonida: discovery digest, Fri 20 Nov 2026 15:22 UTC
+# Bad Day In Leonida: discovery digest, Fri 20 Nov 2026 23:58 UTC
 
-**Backlog: HEALTHY** | 52 ready (12 tier A) = 17.3 days of cover (target 9) | 10 new this run
+**Backlog: HEALTHY** | 62 ready (11 tier A) = 20.7 days of cover (target 9) | 12 new this run
 
-Sources this run: youtube 79, twitch 99, reddit 0
+Sources this run: youtube 65, twitch 98, reddit 0
 
 | # | Status | Tier | Score | Source | Title | Creator | Views/h | Flags |
 |---|---|---|---|---|---|---|---|---|
@@ -14,13 +14,13 @@ Sources this run: youtube 79, twitch 99, reddit 0
 | 6 | ready | A | 69 | youtube | [GTA 6 - Euphoria Ragdoll Physics / Fails & Funny Moments #2](https://www.youtube.com/watch?v=RuZUqpDuzfo) | Physics Gaming Lab | 2527 |  |
 | 7 | ready | A | 68 | youtube | [GTA 6 Euphoria Ragdoll Physics / Funny Moments & Fails (No Commentary)](https://www.youtube.com/watch?v=x0ETqH6tEWE) | Physics Gaming Lab | 2082 |  |
 | 8 | ready | A | 67 | youtube | [GTA 6 - Dump Truck Physics / Ragdoll Experiments & Police Chase](https://www.youtube.com/watch?v=CPm-ITId7lk) | ActiveRagdollExperiments | 1868 |  |
-| 9 | ready | A | 67 | youtube | [GTA 6 WTF and Funny Moments! #2](https://www.youtube.com/watch?v=dUYIMa2ifWM) | Zynxize | 82688 |  |
-| 10 | ready | A | 66 | twitch | [ohnePixel on GTA VI difficulty: "You can be 10 years old and you won't](https://www.twitch.tv/ohnepixel/clip/PricklySpineyChickpeaKeyboardCat-lPhZkKg4k9Nq98Bm) | ohnePixel | 1047 |  |
-| 11 | ready | A | 66 | youtube | [Are GEN Z Getting Slops? Will GTA 6 Jiggle Physics Crash The Economy? ](https://www.youtube.com/watch?v=KUwK642DtKA) | Bad News Show | 2478 |  |
-| 12 | ready | A | 65 | youtube | [GTA 6 Funny Moments - Jason Killing NPCs, Lucia Prison Break, INSANE G](https://www.youtube.com/watch?v=eYAggR9aOxo) | Bonko | 1620 |  |
-| 13 | ready | A | 65 | youtube | [GTA 6 Funny & WTF Moments!..😭](https://www.youtube.com/watch?v=nxA62Ngb7bY) | Mosat Clips | 588 |  |
-| 14 | ready | B | 62 | youtube | [GTA 6 – CRAZY 5-Star Police Chase & Rampage at Vice Ocean Beach!](https://www.youtube.com/watch?v=8-DRGbQ1IXc) | Champs Network | 86132 |  |
-| 15 | ready | B | 62 | twitch | [XQC gets called a f****** P**** right after he said so to an NPC in GT](https://www.twitch.tv/xqc/clip/TrustworthyCarefulJalapenoKAPOW--CPhZdDJiBW-X0-C) | xQc | 700 |  |
+| 9 | ready | A | 67 | youtube | [GTA 6 WTF and Funny Moments! #2](https://www.youtube.com/watch?v=dUYIMa2ifWM) | Zynxize | 84388 |  |
+| 10 | ready | A | 66 | youtube | [Are GEN Z Getting Slops? Will GTA 6 Jiggle Physics Crash The Economy? ](https://www.youtube.com/watch?v=KUwK642DtKA) | Bad News Show | 2478 |  |
+| 11 | ready | A | 65 | youtube | [GTA 6 Funny Moments - Jason Killing NPCs, Lucia Prison Break, INSANE G](https://www.youtube.com/watch?v=eYAggR9aOxo) | Bonko | 1620 |  |
+| 12 | ready | A | 65 | youtube | [GTA 6 Funny & WTF Moments!..😭](https://www.youtube.com/watch?v=nxA62Ngb7bY) | Mosat Clips | 588 |  |
+| 13 | ready | B | 64 | twitch | [ohnePixel on GTA VI difficulty: "You can be 10 years old and you won't](https://www.twitch.tv/ohnepixel/clip/PricklySpineyChickpeaKeyboardCat-lPhZkKg4k9Nq98Bm) | ohnePixel | 925 |  |
+| 14 | ready | B | 63 | youtube | [GTA 6 WTF and Funny Moments! #3](https://www.youtube.com/watch?v=GMZzFJsf844) | Zynxize | 66113 |  |
+| 15 | ready | B | 63 | twitch | [Lets not crash this time...](https://www.twitch.tv/caseoh_/clip/LuckyBenevolentDotterelOMGScoots-lFgr2IvDbbFYqy0L) | caseoh_ | 231 |  |
 
 Only rights=allowlisted candidates should be sent to the local cutter. Rights=check or hold require creator permission before publishing.
 
