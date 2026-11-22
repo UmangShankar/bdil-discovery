@@ -1,26 +1,26 @@
-# Bad Day In Leonida: discovery digest, Sun 22 Nov 2026 03:05 UTC
+# Bad Day In Leonida: discovery digest, Sun 22 Nov 2026 14:30 UTC
 
-**Backlog: HEALTHY** | 71 ready (9 tier A) = 23.7 days of cover (target 9) | 6 new this run
+**Backlog: HEALTHY** | 78 ready (9 tier A) = 26.0 days of cover (target 9) | 7 new this run
 
-Sources this run: youtube 59, twitch 100, reddit 0
+Sources this run: youtube 63, twitch 100, reddit 0
 
 | # | Status | Tier | Score | Source | Title | Creator | Views/h | Flags |
 |---|---|---|---|---|---|---|---|---|
 | 1 | to-cut | B | 55 | youtube | [GTA 6 Vice City Free Roam & Police Chase / Next-Gen Gameplay](https://www.youtube.com/watch?v=iQy-GH_JXJ8) | Vi | 84 |  |
-| 2 | ready | A | 72 | youtube | [GTA 6 Beach Shootout / Shooting NPCs & Fighting Police PS5 4K](https://www.youtube.com/watch?v=H9Iefxm-ZjI) | ZERO FAME | 4325 |  |
-| 3 | ready | A | 71 | youtube | [GTA 6 - Funny & Brutal Ragdoll Moments #1](https://www.youtube.com/watch?v=JmXbcXnzwnw) | Darki  | 4836 |  |
+| 2 | ready | A | 71 | youtube | [GTA 6 - Funny & Brutal Ragdoll Moments #1](https://www.youtube.com/watch?v=JmXbcXnzwnw) | Darki  | 4836 |  |
+| 3 | ready | A | 69 | youtube | [GTA 6 Beach Shootout / Shooting NPCs & Fighting Police PS5 4K](https://www.youtube.com/watch?v=H9Iefxm-ZjI) | ZERO FAME | 3483 |  |
 | 4 | ready | A | 69 | youtube | [GTA 6 - Euphoria Ragdoll Physics / Fails & Funny Moments #2](https://www.youtube.com/watch?v=RuZUqpDuzfo) | Physics Gaming Lab | 2527 |  |
 | 5 | ready | A | 66 | youtube | [GTA 6 WTF and Funny Moments! #2](https://www.youtube.com/watch?v=dUYIMa2ifWM) | Zynxize | 72296 |  |
 | 6 | ready | A | 66 | youtube | [Are GEN Z Getting Slops? Will GTA 6 Jiggle Physics Crash The Economy? ](https://www.youtube.com/watch?v=KUwK642DtKA) | Bad News Show | 2478 |  |
-| 7 | ready | A | 66 | youtube | [GTA 6 WTF and Funny Moments! #3](https://www.youtube.com/watch?v=GMZzFJsf844) | Zynxize | 75843 |  |
-| 8 | ready | A | 65 | youtube | [I Stole Drugs Right Under the Cops' Noses! Insane Police Chase / GTA V](https://www.youtube.com/watch?v=e6AhlLiiB38) | Cucubini | 531 |  |
-| 9 | ready | A | 65 | youtube | [GTA 6 Funny & WTF Moments!..😭](https://www.youtube.com/watch?v=nxA62Ngb7bY) | Mosat Clips | 588 |  |
-| 10 | ready | A | 65 | youtube | [GTA 6 Funny Moments & Epic Fails #3](https://www.youtube.com/watch?v=SYDawi4lg7M) | Top Gaming Moments | 1901 |  |
+| 7 | ready | A | 66 | youtube | [GTA 6 LIVE / Vice City Night Ride, Crazy Police Chase & Open World Fun](https://www.youtube.com/watch?v=i5IsOqOL5fY) | UniCraft Stduio  | 645 |  |
+| 8 | ready | A | 65 | youtube | [GTA 6 WTF and Funny Moments! #3](https://www.youtube.com/watch?v=GMZzFJsf844) | Zynxize | 68433 |  |
+| 9 | ready | A | 65 | youtube | [I Stole Drugs Right Under the Cops' Noses! Insane Police Chase / GTA V](https://www.youtube.com/watch?v=e6AhlLiiB38) | Cucubini | 531 |  |
+| 10 | ready | A | 65 | youtube | [GTA 6 Funny & WTF Moments!..😭](https://www.youtube.com/watch?v=nxA62Ngb7bY) | Mosat Clips | 588 |  |
 | 11 | ready | B | 63 | youtube | [GTA 6 Funny Moments & Epic Fails #2](https://www.youtube.com/watch?v=b_Ex8jeldp4) | Top Gaming Moments | 1274 |  |
-| 12 | ready | B | 62 | youtube | [GTA 6 - Lucia’s Port Gellhorn Robbery Spree & Five Star Police Chase](https://www.youtube.com/watch?v=poLZT2F5g-Q) | Mike The Goon | 1379 |  |
-| 13 | ready | B | 61 | twitch | [ohnePixel on GTA VI difficulty: "You can be 10 years old and you won't](https://www.twitch.tv/ohnepixel/clip/PricklySpineyChickpeaKeyboardCat-lPhZkKg4k9Nq98Bm) | ohnePixel | 717 |  |
-| 14 | ready | B | 60 | twitch | [Craziest Gas Station Glitch](https://www.twitch.tv/zoreee/clip/PatientJazzyGarageTriHard-Z1_B3-ucQjsFt9L3) | ZoReee | 156 |  |
-| 15 | ready | B | 60 | youtube | [GTA 6 WTF and Funny Moments! #4](https://www.youtube.com/watch?v=q3b6nfoAXcI) | Zynxize | 35692 |  |
+| 12 | ready | B | 62 | youtube | [GTA 6 Funny Moments & Epic Fails #3](https://www.youtube.com/watch?v=SYDawi4lg7M) | Top Gaming Moments | 1129 |  |
+| 13 | ready | B | 62 | youtube | [GTA 6 - Lucia’s Port Gellhorn Robbery Spree & Five Star Police Chase](https://www.youtube.com/watch?v=poLZT2F5g-Q) | Mike The Goon | 1379 |  |
+| 14 | ready | B | 61 | twitch | [ohnePixel on GTA VI difficulty: "You can be 10 years old and you won't](https://www.twitch.tv/ohnepixel/clip/PricklySpineyChickpeaKeyboardCat-lPhZkKg4k9Nq98Bm) | ohnePixel | 717 |  |
+| 15 | ready | B | 59 | youtube | [GTA 6 WTF and Funny Moments! #4](https://www.youtube.com/watch?v=q3b6nfoAXcI) | Zynxize | 24708 |  |
 
 Only rights=allowlisted candidates should be sent to the local cutter. Rights=check or hold require creator permission before publishing.
 
