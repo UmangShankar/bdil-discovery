@@ -1,0 +1,13 @@
+{
+  "default_version": "v4",
+  "status": "accepted",
+  "accepted_date": "2026-11-24",
+  "accepted_by": "Umang Shankar",
+  "acceptance_basis": "User reviewed and used the workflow for a week and explicitly approved closing V4 and using it from now on.",
+  "entry_point": "v4.py",
+  "mode": "reviewed local-first clipping, packaging and requested uploads",
+  "legacy_v3": "historical only; no implicit fallback",
+  "required_title_text": "GTA VI",
+  "required_thumbnail_text": "GTA VI",
+  "future_improvements": "non-blocking; outside the accepted V4 rollout"
+}
