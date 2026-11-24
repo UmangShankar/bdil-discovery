@@ -1,6 +1,13 @@
-# V4 validation — 2026-11-16
+# Historical V4 engineering validation — 2026-11-16
 
-**NO-GO for replacing V3. GO for opt-in local discovery and reviewed renders.**
+**Current status: V4 accepted as the default on 2026-11-24.** The user reviewed
+and used the workflow for a week and approved closing the rollout within its
+current capabilities. See `V4_RELEASE.md` and `active_pipeline.json`.
+
+The initial decision below is retained as historical evidence, not an active
+rollout block: on 16 November, replacement of V3 was held while reviewed local
+discovery/rendering was permitted. User acceptance supersedes that decision;
+quality checks remain required.
 
 Implemented: automatic FFmpeg fallback, sparse grayscale motion/cut proposals,
 independent observable audio/video/scene/transcript stages, audio-onset rather than
@@ -89,7 +96,7 @@ candidates and manual edits are held by regression tests. No Sheet writes were
 made; no candidate table was created. Live writing remains deliberately
 unimplemented until verified clip quality and concurrency-safe writing are ready.
 
-Remaining rollout criteria:
+Historical rollout criteria (now accepted limitations / future improvements):
 
 - Broader real gameplay/funny/discovery benchmark with positive, inspected
   outcomes. The two-video benchmark proves conservative rejection and one
@@ -113,6 +120,7 @@ history. Their direct-event vocabulary, FFmpeg adapter interface and three new
 regressions are preserved; historical-context rejection applies to action
 classification, so valid educational comparisons remain eligible.
 
-No merge into main, public/private upload, automatic publishing, credential changes, or V3
-replacement occurred. Work remains on PR #1:
+At the time of this 16 November assessment, no merge into main, public/private
+upload, automatic publishing, credential changes, or V3 replacement had occurred.
+The rollout was tracked by PR #1 (see its current state and `V4_RELEASE.md`):
 https://github.com/UmangShankar/bdil-discovery/pull/1

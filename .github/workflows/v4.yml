@@ -1,0 +1,25 @@
+name: V4 regression checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, feature/v4-local-first-hook-ranking]
+    paths: ['*.py', 'requirements*.txt', '.github/workflows/v4.yml', 'run_v4_daily.sh']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+      - run: pip install -r requirements-v4.txt opencv-python-headless faster-whisper
+      - name: V4 and compatibility regressions (no credentials or model downloads)
+        run: python -m unittest v4_workflow_tests v4_package_tests v4_quality_tests v4_tests v4_integration_tests v3_tests discover_tests p0_tests

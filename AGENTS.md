@@ -1,3 +1,20 @@
+# Default workflow: accepted V4
+
+V4 is accepted and is the default for all future clipping work as of
+2026-11-24. The user reviewed and used it for a week and explicitly closed
+the rollout. Use `v4.py` / the V4 modules for new jobs; V3 is historical and
+must not be selected or invoked as an implicit fallback. The existing cutter's
+cut/ASS/render helpers are still the V4 rendering backend.
+
+Use `v4.py prepare URL` (or `--file VIDEO --vtt CAPTIONS`) to prepare a source.
+Review its footage and choose complete moments; zero automatic candidates may
+still require V4 editorial selection, including visual/non-speech sequences.
+Apply the quality and delivery requirements below to every editorial job.
+Do not reopen accepted rollout limitations as blockers or ask the user to
+re-approve V4. New improvements are separate follow-up work when requested.
+Only upload/publish when requested; preserve the user's chosen visibility.
+See `V4_RELEASE.md` and `active_pipeline.json` for the accepted operating scope.
+
 # Clip quality requirements
 
 The user requires stronger payoffs and clean, complete endings for all future
@@ -30,6 +47,11 @@ clips. Apply these requirements to automatic candidates AND editorial jobs in
 
 ## Delivery package standard
 
+- Every future clip's upload title must contain the exact text `GTA VI`.
+  Every future thumbnail must visibly include `GTA VI`; include it in the image
+  prompt and check the generated cover before packaging. This applies to
+  automatic candidates and custom editorial packages. Do not revise existing
+  packages or uploads unless the user requests it.
 - Every finished clip gets its own delivery folder in `discovery/packages/`,
   named `short-video-title_YYYY-MM-DD`. Use the current user-facing date in
   Europe/London, not the video's source publication date or a YouTube ID.

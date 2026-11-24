@@ -71,6 +71,10 @@ def build_package(video, thumbnail, metadata, root=None, short_title=None, day=N
     if not video.is_file() or video.suffix.lower() != '.mp4' or not video.stat().st_size:
         raise ValueError('a finished MP4 is required')
     meta = json.loads(json.dumps(metadata, allow_nan=False))
+    # New deliveries follow the accepted branding rule; old packages remain valid.
+    if isinstance(meta.get('title'), str) and meta['title'].strip() and not re.search(r'\bGTA VI\b', meta['title']):
+        meta['title'] = 'GTA VI | ' + meta['title']
+    meta['workflow_version'] = 'v4'
     validate_metadata(meta)
     if meta.get('file'):
         reference = Path(meta['file'])
@@ -126,7 +130,7 @@ def build_package(video, thumbnail, metadata, root=None, short_title=None, day=N
             "Quality records: payoff-review.json and ending-audit.json\n\n"
             "Packaging does not upload, publish, or change visibility.\n")
         files = {p.name: {'bytes': p.stat().st_size, 'sha256': digest(p)} for p in target.iterdir() if p.is_file()}
-        manifest = {'schema_version': 1, 'package_name': target.name, 'date': day,
+        manifest = {'schema_version': 1, 'workflow_version': 'v4', 'package_name': target.name, 'date': day,
                     'timezone': 'Europe/London', 'title': meta['title'], 'short_title': short_title or meta['title'],
                     'video': 'video.mp4', 'thumbnail': thumb_name, 'thumbnail_width': 1080,
                     'thumbnail_height': 1920, 'thumbnail_required': True, 'duration': media['duration'],

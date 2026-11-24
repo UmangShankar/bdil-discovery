@@ -1,5 +1,30 @@
 # Bad Day In Leonida: clip discovery
 
+## Default: accepted V4
+
+V4 is finalized for our reviewed clipping workflow as of **24 November 2026**,
+following the user's week of review and use. All future clip jobs use V4.
+See [V4_RELEASE.md](V4_RELEASE.md) for the closeout and [V4_LOCAL.md](V4_LOCAL.md)
+for the commands. The earlier V3 rollout instructions below are historical.
+
+```bash
+cd ~/BadDayInLeonida/discovery
+.venv/bin/python install_v4.py --target ../clipper --daily ../run_daily.sh
+.venv/bin/python v4.py prepare 'YOUTUBE_URL'
+# Or: .venv/bin/python v4.py prepare --file VIDEO.mp4 --vtt CAPTIONS.vtt
+```
+
+Review the footage/candidates, render with the V4 quality checks, generate a
+portrait cover and package with `v4.py package`. Both the upload title and visible
+thumbnail text must include **GTA VI**. Verify with `v4.py verify PACKAGE_FOLDER`.
+Upload only when requested; retain the requested visibility and thumbnail checks.
+
+The installed daily launcher pulls the selected backlog and prepares V4 review
+jobs, reusing unchanged prepared sources. It does not use the old V3 auto-upload
+path, overwrite editorial selections, or mark unrendered jobs clipped/uploaded.
+
+## Source discovery
+
 Runs 4x a day on GitHub Actions. Finds GTA 6 moments on YouTube, Twitch and Reddit,
 scores them (see config.yaml), and keeps a rolling backlog in `backlog.csv`, the
 Google Sheet ("backlog" and "digest" tabs) and `digest.md`.
@@ -13,17 +38,18 @@ Settings > Secrets and variables > Actions:
 - Variables: GOOGLE_SHEET_ID, WIF_PROVIDER, SERVICE_ACCOUNT
 Google sign-in is keyless (Workload Identity Federation), so no service-account key file is needed.
 
-## Daily run on the Mac
+## Daily V4 source preparation on the Mac
 ```
-cd ~/BadDayInLeonida/clipper && source .venv/bin/activate
-git -C ~/BadDayInLeonida/discovery pull -q
-python ~/BadDayInLeonida/discovery/pull_backlog.py --client-secret client_secret.json --out backlog.csv
-python clip.py --backlog backlog.csv --upload
-python ~/BadDayInLeonida/discovery/pull_backlog.py --push --client-secret client_secret.json --out backlog.csv
+~/BadDayInLeonida/run_daily.sh
 ```
-Pull before cutting; push afterwards so clipped/uploaded rows are marked in the Sheet and never cut twice.
-Local test file: `python clip.py --file X.mp4 --start 0 --end 8 --hook "..." --upload` (a bare path is read as a URL).
-Test: Actions > Clip discovery > Run workflow.
+Jobs are saved in `discovery/v4_test/jobs/` for V4 review and rendering. The
+source-discovery GitHub Action still maintains the source backlog; it does not
+perform semantic clipping or publishing.
+
+## Historical V2/V3 rollout notes
+
+The remaining sections document earlier releases. Do not run their installers
+or daily auto-upload commands for normal work; the accepted default is V4.
 
 ## V2 quality / rights policy
 

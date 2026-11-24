@@ -48,6 +48,18 @@ class PackageTests(unittest.TestCase):
         second=self.build()
         self.assertEqual(second.name,'los-santos-was-home_2026-11-17_v2')
         self.assertEqual((first/'manifest.json').read_bytes(),original)
+    def test_new_title_branding_and_v4_marker_do_not_mutate_input(self):
+        original = dict(self.meta)
+        out = self.build()
+        meta = json.loads((out/'metadata.json').read_text())
+        self.assertEqual(meta['title'], 'GTA VI | '+original['title'])
+        self.assertEqual(meta['workflow_version'], 'v4')
+        self.assertEqual(package.validate_package(out)['workflow_version'], 'v4')
+        self.assertEqual(self.meta, original)
+    def test_existing_exact_brand_is_not_duplicated(self):
+        meta = {**self.meta, 'title': 'GTA VI: A Complete Moment'}
+        out = self.build(metadata=meta)
+        self.assertEqual(json.loads((out/'metadata.json').read_text())['title'], meta['title'])
     def test_portable_package_can_be_saved_as_a_new_revision(self):
         first=self.build()
         meta=json.loads((first/'metadata.json').read_text())

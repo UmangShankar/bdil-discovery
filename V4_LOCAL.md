@@ -1,8 +1,21 @@
-# V4 local discovery and review
+# V4 default clipping workflow
 
-V4 is opt-in and uses no paid APIs or OpenAI key. V3, the cutter, OAuth,
-uploads, scheduling and production Sheets are unchanged. **Do not replace V3 yet.**
-See `V4_VALIDATION.md` for measured results and remaining rollout criteria.
+V4 is the accepted default as of 2026-11-24 after a week of user review/use.
+Use `v4.py` for all future clipping jobs; V3 is historical, with no implicit
+fallback. See `V4_RELEASE.md` for the acceptance, activation and operating scope.
+Local discovery uses no paid APIs or OpenAI key. The existing cutter remains the
+rendering backend; credentials, requested visibility and upload authorization
+are preserved. `V4_VALIDATION.md` retains the historical engineering evidence.
+
+```bash
+.venv/bin/python install_v4.py --target ../clipper --daily ../run_daily.sh
+.venv/bin/python v4.py prepare 'YOUTUBE_URL'
+.venv/bin/python v4.py prepare --file VIDEO.mp4 --vtt CAPTIONS.vtt
+```
+
+Preparation writes V4 candidates and source/job records under `v4_test/jobs/`.
+It does not upload or mark backlog sources complete. Editorial selection and the
+quality/package requirements below remain part of the accepted workflow.
 
 From `discovery/`, with FFmpeg/FFprobe on PATH and the existing virtualenv:
 
@@ -96,6 +109,11 @@ Optional flags: `--root`, `--date YYYY-MM-DD`, `--captions`, `--thumbnail-prompt
 scripts. Working files can remain in `v4_test/`; the readable dated package is
 the final deliverable. Packaging does not upload or change publication settings.
 
+New package titles automatically include `GTA VI`; generated thumbnail text must
+also visibly include `GTA VI` and be visually reviewed. New package metadata and
+manifests record `workflow_version: v4`. Verification remains compatible with
+existing packages; the rollout does not revise previously delivered media.
+
 **Ending/payoff gate (2026-11-17):** trailing connectors and dependent phrases
 are rejected even if automatic captions add a full stop (for example, `but.`).
 Unanswered final questions, promised-later answers, ellipses and generic hype
@@ -150,5 +168,5 @@ re-read headers, IDs, status, values, formulas, validation and existing child ID
 immediately before writing, using RAW values to avoid formula interpretation.
 
 ```bash
-.venv/bin/python -m unittest v4_package_tests v4_quality_tests v4_tests v4_integration_tests v3_tests discover_tests p0_tests
+.venv/bin/python -m unittest v4_workflow_tests v4_package_tests v4_quality_tests v4_tests v4_integration_tests v3_tests discover_tests p0_tests
 ```
