@@ -1,5 +1,14 @@
 # Bad Day In Leonida: clip discovery
 
+## Performance dashboard
+
+This repository also contains **Clip Intelligence**, a reusable YouTube and TikTok performance dashboard:
+
+- [`dashboard/`](dashboard/README.md): a simple local browser dashboard with manual entries and CSV imports. Its data is stored in the browser; export backups.
+- [`performance-site/`](performance-site/README.md): the light visual dashboard with private ChatGPT Sites hosting, server-side storage, daily updates, tracking charts and CSV imports. It starts empty for a new user. Creating a Site requires a ChatGPT workspace with the Sites capability; the GitHub repository does not itself deploy it.
+
+**Clipping setup limitation:** This repository contains discovery and V4 orchestration, but the accepted V4 installer and render/handoff commands require an existing sibling `../clipper/clip.py` and `../clipper/config.yaml`. The cutter backend is not included in this repository; cloning this repo alone does not produce a complete working renderer. Obtain the compatible backend separately before following the installation steps below. Platform credentials and locally installed FFmpeg/FFprobe are also separate prerequisites. Do not commit credentials or private analytics.
+
 ## Default: accepted V4
 
 V4 is finalized for our reviewed clipping workflow as of **24 November 2026**,
