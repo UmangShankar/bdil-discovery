@@ -1,0 +1,10 @@
+{
+  "channels": [
+    {
+      "id": "default",
+      "name": "My channel"
+    }
+  ],
+  "posts": [],
+  "daily": []
+}
